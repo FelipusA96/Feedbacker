@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gerador de Monitoria, Reorientação & Justificativa</title>
+  <title>Gerador de Monitoria e Reorientação</title>
   <!-- html2canvas para conversão da ficha em imagem PNG -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
@@ -67,7 +67,7 @@
 
     /* SELETOR DE MODO */
     .mode-selector { display: flex; gap: 10px; margin-bottom: 15px; }
-    .mode-btn { flex: 1; padding: 10px; border: 2px solid var(--title-color); background: var(--card-bg); color: var(--title-color); border-radius: 6px; font-weight: bold; cursor: pointer; text-align: center; font-size: 13px; }
+    .mode-btn { flex: 1; padding: 10px; border: 2px solid var(--title-color); background: var(--card-bg); color: var(--title-color); border-radius: 6px; font-weight: bold; cursor: pointer; text-align: center; }
     .mode-btn.active { background: #1a237e; color: #ffffff; }
 
     /* FICHA DA MONITORIA */
@@ -83,8 +83,8 @@
     .score-badge { font-weight: bold; color: #2e7d32 !important; font-size: 14px; }
     .footer-warning { border-top: 1px solid #000000; padding: 12px; text-align: center; font-weight: bold; font-size: 11px; text-transform: uppercase; margin-top: 15px; }
 
-    /* CAIXA DE REORIENTAÇÃO E JUSTIFICATIVA */
-    .output-box { background: #fdfbf7; border: 1px solid #e0b034; padding: 15px; border-radius: 6px; font-family: monospace; font-size: 13px; white-space: pre-wrap; line-height: 1.5; color: #222222; }
+    /* CAIXAS DE SAÍDA */
+    .output-box { background: #fdfbf7; border: 1px solid #e0b034; padding: 12px; border-radius: 6px; font-family: monospace; font-size: 13px; white-space: pre-wrap; line-height: 1.5; color: #222222; }
 
     /* HISTÓRICO */
     .history-list { max-height: 250px; overflow-y: auto; margin-top: 10px; }
@@ -97,7 +97,7 @@
 
 <div class="app-container">
   <div class="header-bar">
-    <h2 class="header-title">📋 PAINEL DE MONITORIA, REORIENTAÇÃO & JUSTIFICATIVA</h2>
+    <h2 class="header-title">📋 PAINEL DE MONITORIA & REORIENTAÇÃO</h2>
     <button class="btn btn-outline" id="themeToggle" onclick="toggleTheme()">🌙 Modo Escuro</button>
   </div>
 
@@ -105,7 +105,6 @@
   <div class="mode-selector">
     <div id="btnModeMonitoria" class="mode-btn active" onclick="setModo('MONITORIA')">Ficha Visual de Monitoria</div>
     <div id="btnModeReorientacao" class="mode-btn" onclick="setModo('REORIENTACAO')">E-mail de Reorientação</div>
-    <div id="btnModeJustificativa" class="mode-btn" onclick="setModo('JUSTIFICATIVA')">Justificativa / Ocorrência</div>
   </div>
 
   <div class="grid-layout">
@@ -222,18 +221,21 @@
             QUALQUER DÚVIDA OU CONTESTAÇÃO, ACIONAR SUA SUPERVISÃO! OBRIGADO
           </div>
         </div>
+
+        <!-- JUSTIFICATIVA / OCORRÊNCIA RÁPIDA DENTRO DA MESMA FICHA -->
+        <div style="margin-top: 20px; border-top: 2px dashed var(--border-color); padding-top: 15px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <label style="margin: 0;">📝 Justificativa / Ocorrência Rápida</label>
+            <button class="btn btn-teal" style="padding: 4px 10px; font-size: 11px;" onclick="copiarTextoJustificativa()">📋 Copiar Justificativa</button>
+          </div>
+          <div id="justificativaRender" class="output-box" spellcheck="true">---</div>
+        </div>
       </div>
 
       <!-- VIEW 2: E-MAIL DE REORIENTAÇÃO -->
       <div id="viewReorientacao" class="preview-container" style="display: none;">
         <button class="btn btn-warning btn-block" style="margin-bottom: 15px;" onclick="copiarTextoReorientacao()">📋 Copiar Texto do E-mail</button>
         <div id="reorientRender" class="output-box" spellcheck="true">---</div>
-      </div>
-
-      <!-- VIEW 3: JUSTIFICATIVA / OCORRÊNCIA -->
-      <div id="viewJustificativa" class="preview-container" style="display: none;">
-        <button class="btn btn-teal btn-block" style="margin-bottom: 15px;" onclick="copiarTextoJustificativa()">📋 Copiar Justificativa</button>
-        <div id="justificativaRender" class="output-box" spellcheck="true">---</div>
       </div>
 
       <!-- HISTÓRICO DE REGISTROS -->
@@ -268,11 +270,9 @@
     modoAtual = modo;
     document.getElementById('btnModeMonitoria').classList.toggle('active', modo === 'MONITORIA');
     document.getElementById('btnModeReorientacao').classList.toggle('active', modo === 'REORIENTACAO');
-    document.getElementById('btnModeJustificativa').classList.toggle('active', modo === 'JUSTIFICATIVA');
     
     document.getElementById('viewMonitoria').style.display = modo === 'MONITORIA' ? 'block' : 'none';
     document.getElementById('viewReorientacao').style.display = modo === 'REORIENTACAO' ? 'block' : 'none';
-    document.getElementById('viewJustificativa').style.display = modo === 'JUSTIFICATIVA' ? 'block' : 'none';
 
     document.getElementById('groupReorientOptions').style.display = modo === 'REORIENTACAO' ? 'grid' : 'none';
     document.getElementById('rowNotas').style.display = modo === 'MONITORIA' ? 'grid' : 'none';
@@ -349,18 +349,22 @@
     const supervisor = document.getElementById('fieldSupervisor').value;
     const saudacao = document.getElementById('fieldSaudacao').value;
 
-    if (modoAtual === 'MONITORIA') {
-      document.getElementById('outDataRealizada').innerText = dataRealizada;
-      document.getElementById('outOperador').innerText = operador;
-      document.getElementById('outDataHora').innerText = dataHora;
-      document.getElementById('outProtocolo').innerText = protocolo;
-      document.getElementById('outNotaMonitoria').innerText = notaMonitoria;
-      document.getElementById('outNotaAqm').innerText = notaAqm;
-      document.getElementById('outMo').innerText = mo;
-      document.getElementById('outAtendimento').innerText = atendimento;
-      document.getElementById('outObservacao').innerText = observacao;
-    } else if (modoAtual === 'REORIENTACAO') {
-      const textoEmail = `${saudacao}, ${supervisor}
+    // Atualiza a Ficha Visual
+    document.getElementById('outDataRealizada').innerText = dataRealizada;
+    document.getElementById('outOperador').innerText = operador;
+    document.getElementById('outDataHora').innerText = dataHora;
+    document.getElementById('outProtocolo').innerText = protocolo;
+    document.getElementById('outNotaMonitoria').innerText = notaMonitoria;
+    document.getElementById('outNotaAqm').innerText = notaAqm;
+    document.getElementById('outMo').innerText = mo;
+    document.getElementById('outAtendimento').innerText = atendimento;
+    document.getElementById('outObservacao').innerText = observacao;
+
+    // Atualiza a Justificativa / Ocorrência rápida
+    document.getElementById('justificativaRender').innerText = `Data/Hora: ${dataHora}\nOBS:\n${observacao}`;
+
+    // Atualiza o E-mail de Reorientação
+    const textoEmail = `${saudacao}, ${supervisor}
 
 Solicito por gentileza REORIENTAÇÃO ao operador(a) ${operador}, devido os desvios identificados.
 
@@ -376,14 +380,7 @@ ${observacao}
 
 Qualquer dúvida estou a disposição!`;
 
-      document.getElementById('reorientRender').innerText = textoEmail;
-    } else if (modoAtual === 'JUSTIFICATIVA') {
-      const textoJustificativa = `Data/Hora: ${dataHora}
-OBS: 
-${observacao}`;
-
-      document.getElementById('justificativaRender').innerText = textoJustificativa;
-    }
+    document.getElementById('reorientRender').innerText = textoEmail;
   }
 
   async function copiarFichaFormatada() {
@@ -496,7 +493,7 @@ ${observacao}`;
       return;
     }
     
-    let content = "=== HISTÓRICO DE MONITORIAS, REORIENTAÇÕES E JUSTIFICATIVAS ===\n\n";
+    let content = "=== HISTÓRICO DE MONITORIAS E REORIENTAÇÕES ===\n\n";
     history.forEach((h, index) => {
       content += `--- REGISTRO #${index + 1} (${h.operador} - ${h.data}) ---\n`;
       content += h.text + "\n\n";
