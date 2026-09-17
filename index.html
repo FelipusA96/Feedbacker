@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gerador de Feedback de Monitoria de Qualidade</title>
+  <title>Gerador de Feedback de Monitoria - SAC Amil</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
@@ -11,19 +11,20 @@
   <style>
     body {
       font-family: 'Inter', sans-serif;
-      background-color: #f1f5f9;
-      color: #1e293b;
+      background-color: #f8fafc;
+      color: #0f172a;
     }
 
     /* Estilos estritos para cópia e impressão do cartão corporativo */
     .printable-card {
-      border: 2px solid #000000 !important;
+      border: 2px solid #1e293b !important;
       background-color: #ffffff !important;
       color: #000000 !important;
       width: 100%;
       max-width: 750px;
       margin: 0 auto;
       font-family: Arial, Helvetica, sans-serif !important;
+      box-sizing: border-box;
     }
 
     .printable-table {
@@ -33,36 +34,59 @@
     }
 
     .printable-table td, .printable-table th {
-      border: 1px solid #000000;
-      padding: 8px 10px;
+      border: 1px solid #1e293b;
+      padding: 9px 12px;
       font-size: 13px;
       vertical-align: top;
       word-wrap: break-word;
     }
 
     .printable-header-bg {
-      background-color: #f2f2f2 !important;
+      background-color: #f1f5f9 !important;
       font-weight: bold;
       text-transform: uppercase;
-      font-size: 13px;
+      font-size: 12px;
+      letter-spacing: 0.5px;
+    }
+
+    .score-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-weight: bold;
+      font-size: 16px;
+      text-align: center;
     }
 
     .score-green {
-      color: #008000 !important;
-      font-weight: bold;
-      font-size: 16px;
+      background-color: #dcfce7 !important;
+      color: #15803d !important;
+      border: 1px solid #86efac !important;
     }
 
     .score-orange {
-      color: #d97706 !important;
-      font-weight: bold;
-      font-size: 16px;
+      background-color: #fef3c7 !important;
+      color: #b45309 !important;
+      border: 1px solid #fde68a !important;
     }
 
     .score-red {
-      color: #dc2626 !important;
-      font-weight: bold;
-      font-size: 16px;
+      background-color: #fee2e2 !important;
+      color: #b91c1c !important;
+      border: 1px solid #fca5a5 !important;
+    }
+
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
     }
 
     @media print {
@@ -82,141 +106,208 @@
     }
   </style>
 </head>
-<body class="min-h-screen p-4 md:p-8">
+<body class="min-h-screen p-3 md:p-6">
 
-<div class="max-w-6xl mx-auto space-y-6">
+<div class="max-w-7xl mx-auto space-y-5">
 
-  <!-- Header Header App -->
-  <header class="no-print bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4">
-    <div class="flex items-center gap-3">
-      <div class="bg-blue-600 text-white p-3 rounded-lg shadow-md">
+  <!-- Header da Aplicação -->
+  <header class="no-print bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4">
+    <div class="flex items-center gap-3.5">
+      <div class="bg-blue-600 text-white p-3 rounded-xl shadow-md flex items-center justify-center">
         <i class="fa-solid fa-clipboard-check text-2xl"></i>
       </div>
       <div>
-        <h1 class="text-xl font-bold text-slate-800">Gerador de Feedback de Monitoria</h1>
-        <p class="text-sm text-slate-500">Gere fichas visuais padronizadas para envio no Outlook, Teams ou PDF</p>
+        <h1 class="text-lg md:text-xl font-bold text-slate-900 tracking-tight">Gestor de Feedbacks de Monitoria</h1>
+        <p class="text-xs text-slate-500">Formatação automática de monitorias, notas combinadas e histórico de relatórios</p>
       </div>
     </div>
+    
     <div class="flex items-center gap-2">
-      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
-        <i class="fa-solid fa-circle text-[8px]"></i> Pronto para Uso
+      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+        <i class="fa-solid fa-headset text-[10px]"></i> SAC & Qualidade
+      </span>
+      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+        <i class="fa-solid fa-database text-[10px]"></i> Histórico Ativo
       </span>
     </div>
   </header>
 
+  <!-- Grid Principal -->
   <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
     
-    <!-- Formulário & Importação (Lado Esquerdo no Desktop) -->
-    <section class="no-print lg:col-span-5 bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-5">
+    <!-- Painel Esquerdo: Entrada, Edição e Histórico -->
+    <section class="no-print lg:col-span-6 space-y-5">
       
-      <div>
-        <label for="rawText" class="block text-sm font-semibold text-slate-700 mb-1 flex items-center justify-between">
-          <span><i class="fa-solid fa-paste text-blue-600 mr-1.5"></i> Cole o Relatório Bruto:</span>
-        </label>
-        <textarea id="rawText" rows="7" class="w-full text-xs p-3 font-mono bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="Data Realizada: 16/09/2026&#10;Operador(a): Lis Eduarda&#10;Data/Hora: 15/09/2026 15:23:49&#10;Protocolo: 32630520260915083879&#10;Atendimento&#10;MO: 094525486&#10;Sr.ª Fabiola..."></textarea>
-        
-        <button onclick="extrairDados()" class="mt-2 w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg shadow-sm transition-all text-sm flex items-center justify-center gap-2">
-          <i class="fa-solid fa-bolt"></i> Extrair Dados Automaticamente
-        </button>
+      <!-- Card do Parser Bruto -->
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+        <div class="flex items-center justify-between">
+          <label for="rawText" class="text-sm font-bold text-slate-800 flex items-center gap-2">
+            <i class="fa-solid fa-file-import text-blue-600"></i> Relatório Bruto (Cole Aqui):
+          </label>
+          <button onclick="limparCampos()" class="text-xs text-slate-400 hover:text-slate-600 transition-colors">
+            <i class="fa-solid fa-eraser"></i> Limpar
+          </button>
+        </div>
+
+        <textarea id="rawText" rows="7" class="w-full text-xs p-3 font-mono bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none leading-relaxed" placeholder="Cole a monitoria aqui..."></textarea>
+
+        <div class="flex gap-2">
+          <button onclick="extrairDados(true)" class="flex-1 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-medium py-2.5 px-4 rounded-xl shadow-sm transition-all text-xs md:text-sm flex items-center justify-center gap-2">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Processar & Salvar no Histórico
+          </button>
+        </div>
       </div>
 
-      <hr class="border-slate-200">
-
-      <div class="space-y-3">
-        <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-          <i class="fa-solid fa-sliders text-slate-500"></i> Ajuste dos Campos Extraídos
-        </h3>
+      <!-- Card de Ajuste dos Campos Extraídos -->
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
+            <i class="fa-solid fa-sliders text-slate-400"></i> Dados da Monitoria Processada
+          </h3>
+          <span class="text-[10px] text-slate-400">Edição instantânea</span>
+        </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-medium text-slate-600 mb-1">Data Realizada:</label>
-            <input type="text" id="dataRealizada" class="w-full text-xs p-2 border border-slate-300 rounded focus:ring-1 focus:ring-blue-500" oninput="atualizarPreview()">
+            <input type="text" id="dataRealizada" class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none" oninput="atualizarPreview()">
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-600 mb-1">Operador(a):</label>
-            <input type="text" id="operador" class="w-full text-xs p-2 border border-slate-300 rounded focus:ring-1 focus:ring-blue-500" oninput="atualizarPreview()">
+            <input type="text" id="operador" class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none" oninput="atualizarPreview()">
           </div>
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-medium text-slate-600 mb-1">Data/Hora Atendimento:</label>
-            <input type="text" id="dataHora" class="w-full text-xs p-2 border border-slate-300 rounded focus:ring-1 focus:ring-blue-500" oninput="atualizarPreview()">
+            <input type="text" id="dataHora" class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none" oninput="atualizarPreview()">
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-600 mb-1">Protocolo:</label>
-            <input type="text" id="protocolo" class="w-full text-xs p-2 border border-slate-300 rounded focus:ring-1 focus:ring-blue-500" oninput="atualizarPreview()">
+            <input type="text" id="protocolo" class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none" oninput="atualizarPreview()">
           </div>
         </div>
 
-        <div class="grid grid-cols-3 gap-3">
-          <div class="col-span-1">
+        <!-- Bloco Reorganizado de Notas Unificadas -->
+        <div class="grid grid-cols-3 gap-3 bg-blue-50/60 p-3 rounded-xl border border-blue-100">
+          <div>
+            <label class="block text-xs font-semibold text-blue-900 mb-1">Nota Monitoria:</label>
+            <input type="text" id="nota" value="90" class="w-full text-xs font-bold p-2 bg-white border border-blue-200 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none" oninput="atualizarPreview()">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-blue-900 mb-1">Nota AQM:</label>
+            <input type="text" id="notaAqm" value="90" class="w-full text-xs font-bold p-2 bg-white border border-blue-200 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none" oninput="atualizarPreview()">
+          </div>
+          <div>
             <label class="block text-xs font-medium text-slate-600 mb-1">M.O.:</label>
-            <input type="text" id="mo" class="w-full text-xs p-2 border border-slate-300 rounded focus:ring-1 focus:ring-blue-500" oninput="atualizarPreview()">
-          </div>
-          <div class="col-span-1">
-            <label class="block text-xs font-medium text-slate-600 mb-1">Nota Avaliação:</label>
-            <input type="text" id="nota" value="90" class="w-full text-xs p-2 border border-slate-300 rounded focus:ring-1 focus:ring-blue-500" oninput="atualizarPreview()">
-          </div>
-          <div class="col-span-1">
-            <label class="block text-xs font-medium text-slate-600 mb-1">Nota AQM:</label>
-            <input type="text" id="notaAqm" value="100" class="w-full text-xs p-2 border border-slate-300 rounded focus:ring-1 focus:ring-blue-500" oninput="atualizarPreview()">
+            <input type="text" id="mo" class="w-full text-xs p-2 bg-white border border-slate-300 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none" oninput="atualizarPreview()">
           </div>
         </div>
 
         <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">Descrição do Atendimento:</label>
-          <textarea id="resumo" rows="4" class="w-full text-xs p-2 border border-slate-300 rounded focus:ring-1 focus:ring-blue-500" oninput="atualizarPreview()"></textarea>
+          <label class="block text-xs font-medium text-slate-600 mb-1">Resumo do Atendimento:</label>
+          <textarea id="resumo" rows="3" class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none" oninput="atualizarPreview()"></textarea>
         </div>
 
         <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">Observações / Pontos de Melhoria:</label>
-          <textarea id="observacao" rows="3" class="w-full text-xs p-2 border border-slate-300 rounded focus:ring-1 focus:ring-blue-500" oninput="atualizarPreview()"></textarea>
+          <label class="block text-xs font-medium text-slate-600 mb-1">Observações / Pontos de Atenção:</label>
+          <textarea id="observacao" rows="3" class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none" oninput="atualizarPreview()"></textarea>
         </div>
       </div>
+
+      <!-- Card do Histórico do LocalStorage -->
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+            <i class="fa-solid fa-clock-rotate-left text-blue-600"></i> Histórico de Monitorias Salvas
+          </h3>
+          <span id="historyCount" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">0 salvas</span>
+        </div>
+
+        <!-- Filtro do Histórico -->
+        <div class="relative">
+          <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
+          <input type="text" id="searchHistory" oninput="renderizarHistorico()" placeholder="Buscar por operador, protocolo ou data..." class="w-full text-xs pl-8 pr-3 py-2 border border-slate-200 rounded-lg outline-none focus:border-blue-500">
+        </div>
+
+        <!-- Lista de Itens Salvos -->
+        <div id="historyList" class="space-y-2 max-h-56 overflow-y-auto pr-1">
+          <!-- Renderizado Dinamicamente via JS -->
+        </div>
+
+        <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
+          <button onclick="exportarHistoricoTXT()" class="text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1.5">
+            <i class="fa-solid fa-file-arrow-down"></i> Exportar Tudo (TXT)
+          </button>
+          <button onclick="limparHistorico()" class="text-rose-500 hover:text-rose-700 font-medium flex items-center gap-1">
+            <i class="fa-solid fa-trash-can"></i> Limpar Histórico
+          </button>
+        </div>
+      </div>
+
     </section>
 
-    <!-- Área de Visualização e Copia (Lado Direito no Desktop) -->
-    <section class="lg:col-span-7 space-y-4">
+    <!-- Painel Direito: Cartão Formatado & Ações -->
+    <section class="lg:col-span-6 space-y-4">
       
-      <!-- Ações Principais -->
-      <div class="no-print bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-3">
-        <h2 class="text-sm font-bold text-slate-700 flex items-center gap-2">
+      <!-- Toolbar de Ações -->
+      <div class="no-print bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-3">
+        <h2 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
           <i class="fa-solid fa-eye text-blue-600"></i> Pré-visualização da Ficha
         </h2>
+        
         <div class="flex items-center gap-2 flex-wrap">
-          <button onclick="copiarFeedback()" class="bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-3.5 rounded-lg shadow-sm text-xs flex items-center gap-2 transition-all">
-            <i class="fa-solid fa-copy"></i> Copiar Formatado
+          <button onclick="copiarTextoBruto()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2 px-3 rounded-xl text-xs flex items-center gap-1.5 transition-all">
+            <i class="fa-solid fa-copy"></i> Copiar Bruto
           </button>
-          <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-3.5 rounded-lg shadow-sm text-xs flex items-center gap-2 transition-all">
-            <i class="fa-solid fa-file-pdf"></i> Imprimir / PDF
+          <button onclick="copiarFeedbackFormatado()" class="bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white font-medium py-2 px-3.5 rounded-xl shadow-sm text-xs flex items-center gap-1.5 transition-all">
+            <i class="fa-solid fa-paste"></i> Copiar Formatado
+          </button>
+          <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-medium py-2 px-3.5 rounded-xl shadow-sm text-xs flex items-center gap-1.5 transition-all">
+            <i class="fa-solid fa-file-pdf"></i> PDF / Imprimir
           </button>
         </div>
       </div>
 
-      <!-- Toast Feedback de Cópia -->
-      <div id="toast" class="no-print hidden bg-emerald-50 border border-emerald-300 text-emerald-800 px-4 py-3 rounded-lg text-sm font-medium items-center gap-2 shadow-sm animate-bounce">
-        <i class="fa-solid fa-circle-check text-emerald-600"></i>
-        <span>Feedback formatado copiado! Basta colar (Ctrl+V) no Teams, Outlook ou Word.</span>
+      <!-- Toast de Notificação -->
+      <div id="toast" class="no-print hidden bg-emerald-50 border border-emerald-300 text-emerald-800 px-4 py-3 rounded-xl text-xs font-medium items-center gap-2 shadow-sm animate-pulse">
+        <i class="fa-solid fa-circle-check text-emerald-600 text-base"></i>
+        <span id="toastMsg">Feedback copiado com sucesso! Pode colar no Teams/Outlook.</span>
       </div>
 
-      <!-- FICHA FORMATADA ESTILO TABELA CORPORATIVA -->
-      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-        <div id="previewCard" class="printable-card p-4">
+      <!-- CARTÃO FORMATADO (MODELO REORGANIZADO) -->
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 overflow-x-auto">
+        <div id="previewCard" class="printable-card p-5">
           
-          <div style="text-align: center; margin-bottom: 12px;">
-            <h2 style="font-size: 16px; font-weight: bold; margin: 0; padding: 0; text-transform: uppercase;">FEEDBACK MONITORIA</h2>
-            <div style="font-size: 11px; margin-top: 3px;" id="outDataRealizadaHeader">Data de Realização: --/--/----</div>
+          <!-- Cabeçalho Principal -->
+          <div style="text-align: center; margin-bottom: 14px;">
+            <h2 style="font-size: 16px; font-weight: bold; margin: 0; padding: 0; text-transform: uppercase; letter-spacing: 0.5px;">FEEDBACK MONITORIA</h2>
+            <div style="font-size: 11px; margin-top: 3px; color: #334155;" id="outDataRealizadaHeader">Data de Realização: --/--/----</div>
           </div>
 
           <table class="printable-table">
-            <!-- Operador & Nota -->
+            <!-- Informações do Operador -->
             <tr>
-              <td colspan="4" style="padding: 10px;">
+              <td colspan="4" style="padding: 10px; background-color: #ffffff;">
                 <div style="font-size: 13px;"><strong>Operador(a):</strong> <span id="outOperador">---</span></div>
-                <div style="margin-top: 6px; font-size: 13px;">
-                  <strong>NOTA:</strong> <span id="outNota" class="score-green">100</span>
-                </div>
+              </td>
+            </tr>
+
+            <!-- BLOCO REORGANIZADO: NOTAS UNIFICADAS JUNTO AO CABEÇALHO SUPERIOR -->
+            <tr>
+              <td colspan="4" class="printable-header-bg" style="text-align: center; font-size: 11px; letter-spacing: 0.5px;">
+                DESEMPENHO DA AVALIAÇÃO
+              </td>
+            </tr>
+            <tr>
+              <td colspan="2" style="width: 50%; text-align: center; padding: 12px; background-color: #fafafa;">
+                <div style="font-size: 11px; text-transform: uppercase; font-weight: bold; color: #475569; margin-bottom: 4px;">NOTA MONITORIA</div>
+                <div id="outNota" class="score-badge score-green">100</div>
+              </td>
+              <td colspan="2" style="width: 50%; text-align: center; padding: 12px; background-color: #fafafa;">
+                <div style="font-size: 11px; text-transform: uppercase; font-weight: bold; color: #475569; margin-bottom: 4px;">NOTA AQM</div>
+                <div id="outNotaAqm" class="score-badge score-green">100</div>
               </td>
             </tr>
 
@@ -228,7 +319,7 @@
               <td style="width: 25%; font-family: monospace;" id="outMo">---</td>
             </tr>
             <tr>
-              <td class="printable-header-bg">Data do Atendimento:</td>
+              <td class="printable-header-bg">Data/Hora Atendimento:</td>
               <td colspan="3" id="outDataHora">---</td>
             </tr>
 
@@ -237,7 +328,7 @@
               <td colspan="4" class="printable-header-bg" style="text-align: center;">DESCRIÇÃO DO ATENDIMENTO</td>
             </tr>
             <tr>
-              <td colspan="4" style="min-height: 80px; line-height: 1.5; text-align: justify; white-space: pre-line;" id="outResumo">
+              <td colspan="4" style="min-height: 80px; line-height: 1.5; text-align: justify; white-space: pre-line; padding: 10px;" id="outResumo">
                 ---
               </td>
             </tr>
@@ -247,24 +338,14 @@
               <td colspan="4" class="printable-header-bg" style="text-align: center;">OBSERVAÇÕES / PONTOS DE ATENÇÃO</td>
             </tr>
             <tr>
-              <td colspan="4" style="line-height: 1.5; white-space: pre-line;" id="outObservacao">
+              <td colspan="4" style="line-height: 1.5; white-space: pre-line; padding: 10px;" id="outObservacao">
                 Nenhum desvio identificado.
-              </td>
-            </tr>
-
-            <!-- Feedback AQM -->
-            <tr>
-              <td colspan="4" style="padding: 10px;">
-                <div style="font-weight: bold; text-transform: uppercase; font-size: 12px; margin-bottom: 4px;">FEEDBACK AQM</div>
-                <div style="font-size: 13px;">
-                  <strong>NOTA AQM:</strong> <span id="outNotaAqm" class="score-green">100</span>
-                </div>
               </td>
             </tr>
           </table>
 
-          <!-- Rodapé do Cartão -->
-          <div style="text-align: center; font-size: 11px; font-weight: bold; margin-top: 14px; text-transform: uppercase; border-top: 1px solid #000; padding-top: 8px;">
+          <!-- Rodapé de Fechamento -->
+          <div style="text-align: center; font-size: 11px; font-weight: bold; margin-top: 14px; text-transform: uppercase; border-top: 1px solid #1e293b; padding-top: 8px;">
             QUALQUER DÚVIDA OU CONTESTAÇÃO, ACIONAR SUA SUPERVISÃO! OBRIGADO
           </div>
 
@@ -277,61 +358,73 @@
 </div>
 
 <script>
-  // Exemplo padrão para carregamento inicial
+  // Exemplo inicial conforme solicitação mais recente
   const defaultText = `Data Realizada: 16/09/2026
 Operador(a): Lis Eduarda
 Data/Hora: 15/09/2026 15:23:49
 Protocolo: 32630520260915083879
+AQM:90
+Monitoria: 90
 Atendimento
 MO: 094525486
 Sr.ª Fabiola entrou em contato pois deseja agendar consulta com Ginecologia de Telemedicina e verificar a situação do cadastro de seu app Amil. Em consulta, localizou disponibilidade com profissional e realizado agendamento. Direcionou a beneficiária para verificar a situação de seu app Amil para o beneficiários.
 Observação:
-- Antes/Depois de realizar a a transferência para el setor pertinente é necessário realizar o registro através do motivo 'Orientação Célula Correta Transferência'.`;
+- Antes/Depois de realizar a a transferência para o setor pertinente é necessário realizar o registro através do motivo 'Orientação Célula Correta Transferência'.`;
 
   window.onload = function() {
     document.getElementById('rawText').value = defaultText;
-    extrairDados();
+    extrairDados(false);
+    renderizarHistorico();
   };
 
-  function extrairDados() {
-    const text = document.getElementById('rawText').value;
+  function extrairDados(salvarNoHistorico = false) {
+    const text = document.getElementById('rawText').value.trim();
 
-    // Regex robustas para capturar campos mesmo com variações de espaçamento
+    if (!text) {
+      showToast("Por favor, cole um relatório antes de processar.", "warning");
+      return;
+    }
+
+    // Regex atualizado e adaptado para capturar AQM e Monitoria no novo formato
     const dataRealizadaMatch = text.match(/Data Realizada:\s*(.*)/i);
     const operadorMatch = text.match(/Operador\(a\):\s*(.*)/i);
     const dataHoraMatch = text.match(/Data\/Hora:\s*(.*)/i);
     const protocoloMatch = text.match(/Protocolo:\s*(.*)/i);
+    const aqmMatch = text.match(/AQM:\s*(\d+)/i) || text.match(/Nota AQM:\s*(\d+)/i);
+    const monitoriaMatch = text.match(/Monitoria:\s*(\d+)/i) || text.match(/Nota Monitoria:\s*(\d+)/i) || text.match(/Nota:\s*(\d+)/i);
     const moMatch = text.match(/MO:\s*(.*)/i);
-    const notaMatch = text.match(/Nota:\s*(\d+)/i);
-    const notaAqmMatch = text.match(/Nota AQM:\s*(\d+)/i) || text.match(/Observações do AQM:\s*(\d+)/i);
 
-    // Captura o trecho de Atendimento (Tudo entre 'MO:' ou 'Atendimento' até 'Observação:')
+    // Captura o trecho do Atendimento
     let resumoText = "";
     const resumoMatch = text.match(/(?:MO:\s*.*?\n|Atendimento\s*\n)([\s\S]*?)(?=Observação:|$)/i);
     if (resumoMatch && resumoMatch[1]) {
       resumoText = resumoMatch[1].trim();
     }
 
-    // Captura o trecho da Observação (Tudo após 'Observação:')
+    // Captura a Observação
     let obsText = "";
     const obsMatch = text.match(/Observação:\s*([\s\S]*)/i);
     if (obsMatch && obsMatch[1]) {
       obsText = obsMatch[1].trim();
     }
 
-    // Atribui os valores aos inputs
+    // Atribui aos campos do formulário
     document.getElementById('dataRealizada').value = dataRealizadaMatch ? dataRealizadaMatch[1].trim() : "";
     document.getElementById('operador').value = operadorMatch ? operadorMatch[1].trim() : "";
     document.getElementById('dataHora').value = dataHoraMatch ? dataHoraMatch[1].trim() : "";
     document.getElementById('protocolo').value = protocoloMatch ? protocoloMatch[1].trim() : "";
     document.getElementById('mo').value = moMatch ? moMatch[1].trim() : "";
+    document.getElementById('notaAqm').value = aqmMatch ? aqmMatch[1].trim() : "100";
+    document.getElementById('nota').value = monitoriaMatch ? monitoriaMatch[1].trim() : "100";
     document.getElementById('resumo').value = resumoText;
     document.getElementById('observacao').value = obsText;
-    
-    if (notaMatch) document.getElementById('nota').value = notaMatch[1].trim();
-    if (notaAqmMatch) document.getElementById('notaAqm').value = notaAqmMatch[1].trim();
 
     atualizarPreview();
+
+    if (salvarNoHistorico) {
+      salvarMonitoriaNoHistorico(text);
+      showToast("Monitoria processada e salva no histórico!", "success");
+    }
   }
 
   function atualizarPreview() {
@@ -353,32 +446,169 @@ Observação:
     document.getElementById('outResumo').innerText = resumo;
     document.getElementById('outObservacao').innerText = observacao;
 
-    // Atualiza notas e aplica estilização por cor
-    atualizarNotaElemento('outNota', nota);
-    atualizarNotaElemento('outNotaAqm', notaAqm);
+    // Atualiza badges com a nova estrutura de cores
+    atualizarBadgeNota('outNota', nota);
+    atualizarBadgeNota('outNotaAqm', notaAqm);
   }
 
-  function atualizarNotaElemento(elementId, valor) {
+  function atualizarBadgeNota(elementId, valor) {
     const el = document.getElementById(elementId);
     el.innerText = valor;
     
     const num = parseInt(valor, 10);
-    el.className = ""; // limpa
     if (isNaN(num) || num >= 90) {
-      el.className = "score-green";
+      el.className = "score-badge score-green";
     } else if (num >= 70) {
-      el.className = "score-orange";
+      el.className = "score-badge score-orange";
     } else {
-      el.className = "score-red";
+      el.className = "score-badge score-red";
     }
   }
 
-  async function copiarFeedback() {
+  function limparCampos() {
+    document.getElementById('rawText').value = "";
+    document.getElementById('dataRealizada').value = "";
+    document.getElementById('operador').value = "";
+    document.getElementById('dataHora').value = "";
+    document.getElementById('protocolo').value = "";
+    document.getElementById('mo').value = "";
+    document.getElementById('nota').value = "100";
+    document.getElementById('notaAqm').value = "100";
+    document.getElementById('resumo').value = "";
+    document.getElementById('observacao').value = "";
+    atualizarPreview();
+  }
+
+  /* --- GESTÃO DE HISTÓRICO (LOCALSTORAGE) --- */
+  function getHistorico() {
+    try {
+      return JSON.parse(localStorage.getItem('monitorias_history') || '[]');
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function salvarMonitoriaNoHistorico(rawContent) {
+    const history = getHistorico();
+    const item = {
+      id: Date.now(),
+      timestamp: new Date().toLocaleString('pt-BR'),
+      operador: document.getElementById('operador').value || "Sem Nome",
+      protocolo: document.getElementById('protocolo').value || "Sem Protocolo",
+      dataRealizada: document.getElementById('dataRealizada').value || "--/--/----",
+      nota: document.getElementById('nota').value || "100",
+      notaAqm: document.getElementById('notaAqm').value || "100",
+      rawText: rawContent
+    };
+
+    // Evita duplicatas exatas recentes
+    if (history.length > 0 && history[0].rawText === rawContent) {
+      return;
+    }
+
+    history.unshift(item); // Adiciona no início
+    localStorage.setItem('monitorias_history', JSON.stringify(history));
+    renderizarHistorico();
+  }
+
+  function renderizarHistorico() {
+    const history = getHistorico();
+    const listEl = document.getElementById('historyList');
+    const filter = document.getElementById('searchHistory').value.toLowerCase();
+    document.getElementById('historyCount').innerText = `${history.length} salvas`;
+
+    listEl.innerHTML = "";
+
+    if (history.length === 0) {
+      listEl.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Nenhuma monitoria salva no histórico ainda.</p>`;
+      return;
+    }
+
+    const filtered = history.filter(item => 
+      item.operador.toLowerCase().includes(filter) ||
+      item.protocolo.toLowerCase().includes(filter) ||
+      item.dataRealizada.toLowerCase().includes(filter)
+    );
+
+    if (filtered.length === 0) {
+      listEl.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Nenhum resultado para a busca.</p>`;
+      return;
+    }
+
+    filtered.forEach(item => {
+      const div = document.createElement('div');
+      div.className = "p-2.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-2 hover:bg-blue-50/50 transition-colors text-xs";
+      div.innerHTML = `
+        <div class="truncate cursor-pointer flex-1" onclick="carregarDoHistorico(${item.id})">
+          <div class="font-bold text-slate-800 truncate">${escapeHtml(item.operador)}</div>
+          <div class="text-[10px] text-slate-500 flex gap-2">
+            <span>Prot: ${escapeHtml(item.protocolo)}</span>
+            <span>Realizado: ${escapeHtml(item.dataRealizada)}</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <span class="px-1.5 py-0.5 rounded font-bold text-[10px] bg-slate-200 text-slate-700">M: ${item.nota} | A: ${item.notaAqm}</span>
+          <button onclick="deletarItemHistorico(${item.id})" class="text-slate-400 hover:text-rose-600 p-1">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      `;
+      listEl.appendChild(div);
+    });
+  }
+
+  function carregarDoHistorico(id) {
+    const history = getHistorico();
+    const item = history.find(i => i.id === id);
+    if (item) {
+      document.getElementById('rawText').value = item.rawText;
+      extrairDados(false);
+      showToast(`Monitoria de ${item.operador} carregada!`, "info");
+    }
+  }
+
+  function deletarItemHistorico(id) {
+    let history = getHistorico();
+    history = history.filter(i => i.id !== id);
+    localStorage.setItem('monitorias_history', JSON.stringify(history));
+    renderizarHistorico();
+  }
+
+  function limparHistorico() {
+    if (confirm("Deseja realmente apagar todo o histórico de monitorias salvas?")) {
+      localStorage.removeItem('monitorias_history');
+      renderizarHistorico();
+      showToast("Histórico limpo.", "info");
+    }
+  }
+
+  function exportarHistoricoTXT() {
+    const history = getHistorico();
+    if (history.length === 0) {
+      showToast("Não há nada no histórico para exportar.", "warning");
+      return;
+    }
+
+    let fullText = "=============== HISTÓRICO DE MONITORIAS MONITORADAS ===============\n\n";
+    history.forEach((item, index) => {
+      fullText += `--- MONITORIA #${index + 1} (${item.timestamp}) ---\n`;
+      fullText += item.rawText + "\n\n";
+      fullText += "===================================================================\n\n";
+    });
+
+    const blob = new Blob([fullText], { type: "text/plain;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `Historico_Monitorias_${new Date().toISOString().slice(0,10)}.txt`;
+    a.click();
+  }
+
+  /* --- RECURSOS DE CÓPIA E EXPORTAÇÃO --- */
+  async function copiarFeedbackFormatado() {
     atualizarPreview();
     const cardElement = document.getElementById('previewCard');
 
     try {
-      // Monta HTML completo com estilos embutidos para garantir colar idêntico no Teams/Outlook
       const htmlContent = `
         <div style="font-family: Arial, Helvetica, sans-serif; background-color: #ffffff; padding: 10px;">
           ${cardElement.innerHTML}
@@ -394,20 +624,41 @@ Observação:
       });
 
       await navigator.clipboard.write([clipboardItem]);
-
-      // Exibe toast de sucesso
-      const toast = document.getElementById('toast');
-      toast.classList.remove('hidden');
-      toast.classList.add('flex');
-      setTimeout(() => {
-        toast.classList.add('hidden');
-        toast.classList.remove('flex');
-      }, 3500);
+      showToast("Feedback formatado copiado! Basta dar Ctrl+V no Teams/Outlook.", "success");
 
     } catch (err) {
       console.error("Erro ao copiar:", err);
-      alert("Não foi possível copiar automaticamente. Selecione o cartão com o mouse e pressione Ctrl+C.");
+      showToast("Erro na cópia automática. Selecione o cartão e use Ctrl+C.", "warning");
     }
+  }
+
+  function copiarTextoBruto() {
+    const raw = document.getElementById('rawText').value;
+    if (!raw) {
+      showToast("Nenhum texto bruto disponível para copiar.", "warning");
+      return;
+    }
+    navigator.clipboard.writeText(raw).then(() => {
+      showToast("Texto bruto original copiado para a área de transferência!", "info");
+    });
+  }
+
+  function showToast(msg, type = "success") {
+    const toast = document.getElementById('toast');
+    const toastMsg = document.getElementById('toastMsg');
+    toastMsg.innerText = msg;
+    
+    toast.classList.remove('hidden');
+    toast.classList.add('flex');
+    
+    setTimeout(() => {
+      toast.classList.add('hidden');
+      toast.classList.remove('flex');
+    }, 3500);
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   }
 </script>
 </body>
