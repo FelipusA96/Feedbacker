@@ -9,55 +9,75 @@
     .form-group { margin-bottom: 12px; }
     label { font-weight: bold; display: block; margin-bottom: 4px; }
     input, textarea { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
-    button { background-color: #0056b3; color: white; border: none; padding: 10px 15px; cursor: pointer; border-radius: 4px; font-weight: bold; }
-    button:hover { background-color: #003d82; }
     
-    /* Estilo do Documento de Feedback (Estilo a Imagem) */
-    .preview { margin-top: 30px; border: 2px solid #000; padding: 15px; background: #fff; color: #000; }
+    /* Caixa de Cola Automática */
+    .paste-box { background: #eef6ff; border: 2px dashed #0056b3; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
+    .paste-box label { color: #0056b3; font-size: 15px; }
+
+    .btn-group { display: flex; gap: 10px; margin-top: 15px; }
+    button { background-color: #0056b3; color: white; border: none; padding: 10px 15px; cursor: pointer; border-radius: 4px; font-weight: bold; }
+    button.secondary { background-color: #28a745; }
+    button:hover { opacity: 0.9; }
+    
+    /* Estilo do Documento de Feedback */
+    .preview { margin-top: 30px; border: 2px solid #000; padding: 15px; background: #fff; color: #000; max-width: 800px; margin-left: auto; margin-right: auto; }
     .preview h2 { text-align: center; margin: 0 0 5px 0; font-size: 18px; text-transform: uppercase; }
-    .preview .sub-header { text-align: center; font-size: 12px; margin-bottom: 15px; }
+    .preview .sub-header { text-align: center; font-size: 12px; margin-bottom: 15px; font-weight: bold; }
     .box { border: 1px solid #000; margin-bottom: 10px; padding: 8px; }
     .box-title { font-weight: bold; text-transform: uppercase; border-bottom: 1px solid #000; padding-bottom: 4px; margin-bottom: 6px; font-size: 13px; }
-    .flex-row { display: flex; justify-content: space-between; }
     .score { font-size: 16px; font-weight: bold; color: green; }
     .footer-note { text-align: center; font-weight: bold; font-size: 11px; margin-top: 15px; text-transform: uppercase; }
     
     @media print {
       .no-print { display: none; }
-      .preview { border: 2px solid #000; }
+      .preview { border: 2px solid #000; width: 100%; }
     }
   </style>
 </head>
 <body>
 
 <div class="container no-print">
-  <h2>Formulário de Feedback</h2>
-  <div class="form-group"><label>Semana:</label><input type="text" id="semana" value="Semana 15/09 a 21/09"></div>
-  <div class="form-group"><label>Operador(a):</label><input type="text" id="operador" placeholder="Nome do Operador"></div>
-  <div class="form-group"><label>Nota:</label><input type="text" id="nota" value="90"></div>
-  <div class="form-group"><label>Data/Hora:</label><input type="text" id="dataHora" placeholder="15/09/2026 08:18:16"></div>
-  <div class="form-group"><label>Protocolo:</label><input type="text" id="protocolo" placeholder="32630520260915006037"></div>
-  <div class="form-group"><label>Resumo do Atendimento:</label><textarea id="resumo" rows="3"></textarea></div>
+  <h2>Gerador de Feedback Automático</h2>
+  
+  <!-- CAIXA PARA COLAR O TEXTO BRUTO -->
+  <div class="paste-box">
+    <label>📥 Cole o texto do seu formulário básico aqui:</label>
+    <textarea id="rawText" rows="6" placeholder="Cole aqui o texto contendo Data Realizada, Operador(a), Data/Hora, Protocolo, Observação, etc."></textarea>
+    <button style="margin-top: 8px;" onclick="extrairDados()">⚡ Extrair Dados Automático</button>
+  </div>
+
+  <hr>
+
+  <h3>Campos Extraídos (Conferência / Ajustes)</h3>
+  <div class="form-group"><label>Semana / Período:</label><input type="text" id="semana" placeholder="Ex: 15/09 a 21/09"></div>
+  <div class="form-group"><label>Operador(a):</label><input type="text" id="operador"></div>
+  <div class="form-group"><label>Data/Hora do Atendimento:</label><input type="text" id="dataHora"></div>
+  <div class="form-group"><label>Protocolo / MO:</label><input type="text" id="protocolo"></div>
+  <div class="form-group"><label>Resumo / Atendimento:</label><textarea id="resumo" rows="3"></textarea></div>
   <div class="form-group"><label>Ponto Forte:</label><textarea id="pontoForte" rows="2"></textarea></div>
   <div class="form-group"><label>Ponto de Melhoria:</label><textarea id="pontoMelhoria" rows="2"></textarea></div>
+  <div class="form-group"><label>Nota:</label><input type="text" id="nota" value="90"></div>
   <div class="form-group"><label>Nota AQM:</label><input type="text" id="notaAqm" value="100"></div>
-  <button onclick="gerarFeedback()">Gerar Cartão Visual</button>
-  <button onclick="window.print()">Salvar/Imprimir em PDF</button>
+  
+  <div class="btn-group">
+    <button onclick="gerarFeedback()">Atualizar Visualização</button>
+    <button class="secondary" onclick="window.print()">Salvar / Imprimir PDF</button>
+  </div>
 </div>
 
-<!-- Área de Visualização do Feedback -->
+<!-- ÁREA DE VISUALIZAÇÃO DO CARTÃO -->
 <div class="preview" id="previewArea">
   <h2>FEEDBACK MONITORIA</h2>
-  <div class="sub-header" id="outSemana">Semana --/--</div>
+  <div class="sub-header" id="outSemana">SEMANA DE MONITORIA</div>
 
   <div class="box">
-    <div><strong>Operador(a):</strong> <span id="outOperador">---</span></div>
+    <div><strong>OPERADOR(A):</strong> <span id="outOperador">---</span></div>
     <div style="margin-top: 5px;"><strong>NOTA:</strong> <span class="score" id="outNota">--</span></div>
   </div>
 
   <div class="box">
-    <div><strong>Data do Atendimento:</strong> <span id="outDataHora">---</span></div>
-    <div><strong>Protocolo:</strong> <span id="outProtocolo">---</span></div>
+    <div><strong>DATA/HORA ATENDIMENTO:</strong> <span id="outDataHora">---</span></div>
+    <div><strong>PROTOCOLO / MO:</strong> <span id="outProtocolo">---</span></div>
   </div>
 
   <div class="box">
@@ -82,16 +102,48 @@
 </div>
 
 <script>
+  function extrairDados() {
+    const text = document.getElementById('rawText').value;
+
+    // Padrões de busca por Regex
+    const opMatch = text.match(/Operador\(a\):\s*(.*)/i);
+    const dataHoraMatch = text.match(/Data\/Hora:\s*(.*)/i);
+    const dataRealizadaMatch = text.match(/Data Realizada:\s*(.*)/i);
+    const moMatch = text.match(/MO:\s*(.*)/i) || text.match(/Protocolo:\s*(.*)/i);
+    const forteMatch = text.match(/Ponto Forte:\s*(.*)/i);
+    const melhoriaMatch = text.match(/Ponto de Melhoria:\s*(.*)/i);
+    const notaMatch = text.match(/Nota:\s*(\d+)/i);
+    const notaAqmMatch = text.match(/Observações do AQM:\s*(\d+)/i) || text.match(/Nota AQM:\s*(\d+)/i);
+    
+    // Tenta capturar o bloco de resumo/observação
+    const obsMatch = text.match(/(?:Resumo do Atendimento|Observação):\s*([\s\S]*?)(?=✨|🔍|📊|📝|Ponto Forte|Ponto de Melhoria|Nota|$)/i);
+
+    if (opMatch) document.getElementById('operador').value = opMatch[1].trim();
+    if (dataHoraMatch) document.getElementById('dataHora').value = dataHoraMatch[1].trim();
+    if (moMatch) document.getElementById('protocolo').value = moMatch[1].trim();
+    if (forteMatch) document.getElementById('pontoForte').value = forteMatch[1].trim();
+    if (melhoriaMatch) document.getElementById('pontoMelhoria').value = melhoriaMatch[1].trim();
+    if (notaMatch) document.getElementById('nota').value = notaMatch[1].trim();
+    if (notaAqmMatch) document.getElementById('notaAqm').value = notaAqmMatch[1].trim();
+    if (obsMatch) document.getElementById('resumo').value = obsMatch[1].trim();
+    
+    if (dataRealizadaMatch) {
+      document.getElementById('semana').value = "Realizado em " + dataRealizadaMatch[1].trim();
+    }
+
+    gerarFeedback();
+  }
+
   function gerarFeedback() {
-    document.getElementById('outSemana').innerText = document.getElementById('semana').value;
-    document.getElementById('outOperador').innerText = document.getElementById('operador').value;
-    document.getElementById('outNota').innerText = document.getElementById('nota').value;
-    document.getElementById('outDataHora').innerText = document.getElementById('dataHora').value;
-    document.getElementById('outProtocolo').innerText = document.getElementById('protocolo').value;
-    document.getElementById('outResumo').innerText = document.getElementById('resumo').value;
-    document.getElementById('outPontoForte').innerText = document.getElementById('pontoForte').value;
-    document.getElementById('outPontoMelhoria').innerText = document.getElementById('pontoMelhoria').value;
-    document.getElementById('outNotaAqm').innerText = document.getElementById('notaAqm').value;
+    document.getElementById('outSemana').innerText = document.getElementById('semana').value || "SEMANA DE MONITORIA";
+    document.getElementById('outOperador').innerText = document.getElementById('operador').value || "---";
+    document.getElementById('outNota').innerText = document.getElementById('nota').value || "--";
+    document.getElementById('outDataHora').innerText = document.getElementById('dataHora').value || "---";
+    document.getElementById('outProtocolo').innerText = document.getElementById('protocolo').value || "---";
+    document.getElementById('outResumo').innerText = document.getElementById('resumo').value || "---";
+    document.getElementById('outPontoForte').innerText = document.getElementById('pontoForte').value || "---";
+    document.getElementById('outPontoMelhoria').innerText = document.getElementById('pontoMelhoria').value || "---";
+    document.getElementById('outNotaAqm').innerText = document.getElementById('notaAqm').value || "--";
   }
 </script>
 
