@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gerador de Monitoria e Reorientação</title>
+  <title>Gerador de Monitoria, Reorientação & Justificativa</title>
   <!-- html2canvas para conversão da ficha em imagem PNG -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
@@ -56,17 +56,21 @@
     .btn-purple:hover { background: #4a148c; }
     .btn-warning { background: #e65100; }
     .btn-warning:hover { background: #bf360c; }
+    .btn-teal { background: #00796b; }
+    .btn-teal:hover { background: #004d40; }
     .btn-outline { background: transparent; color: var(--title-color); border: 1px solid var(--title-color); }
     .btn-outline:hover { background: rgba(159, 168, 218, 0.1); }
     .btn-danger { background: #c62828; padding: 6px 10px; font-size: 11px; }
+    .btn-remove-item { background: transparent; color: #c62828; border: none; font-size: 14px; font-weight: bold; cursor: pointer; padding: 2px 6px; border-radius: 4px; }
+    .btn-remove-item:hover { background: rgba(198, 40, 40, 0.15); }
     .btn-block { width: 100%; }
 
     /* SELETOR DE MODO */
     .mode-selector { display: flex; gap: 10px; margin-bottom: 15px; }
-    .mode-btn { flex: 1; padding: 10px; border: 2px solid var(--title-color); background: var(--card-bg); color: var(--title-color); border-radius: 6px; font-weight: bold; cursor: pointer; text-align: center; }
+    .mode-btn { flex: 1; padding: 10px; border: 2px solid var(--title-color); background: var(--card-bg); color: var(--title-color); border-radius: 6px; font-weight: bold; cursor: pointer; text-align: center; font-size: 13px; }
     .mode-btn.active { background: #1a237e; color: #ffffff; }
 
-    /* FICHA DA MONITORIA (Sempre mantém fundo branco para cópia/fidelidade) */
+    /* FICHA DA MONITORIA */
     .preview-container { background: var(--card-bg); padding: 25px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
     .sheet { border: 2px solid #000000; padding: 0; background: #ffffff !important; font-family: Arial, sans-serif; color: #000000 !important; width: 100%; box-sizing: border-box; }
     .sheet * { color: #000000 !important; }
@@ -79,8 +83,8 @@
     .score-badge { font-weight: bold; color: #2e7d32 !important; font-size: 14px; }
     .footer-warning { border-top: 1px solid #000000; padding: 12px; text-align: center; font-weight: bold; font-size: 11px; text-transform: uppercase; margin-top: 15px; }
 
-    /* TEXTO DE REORIENTAÇÃO */
-    .reorient-box { background: #fdfbf7; border: 1px solid #e0b034; padding: 15px; border-radius: 6px; font-family: monospace; font-size: 13px; white-space: pre-wrap; line-height: 1.5; color: #222222; }
+    /* CAIXA DE REORIENTAÇÃO E JUSTIFICATIVA */
+    .output-box { background: #fdfbf7; border: 1px solid #e0b034; padding: 15px; border-radius: 6px; font-family: monospace; font-size: 13px; white-space: pre-wrap; line-height: 1.5; color: #222222; }
 
     /* HISTÓRICO */
     .history-list { max-height: 250px; overflow-y: auto; margin-top: 10px; }
@@ -93,7 +97,7 @@
 
 <div class="app-container">
   <div class="header-bar">
-    <h2 class="header-title">📋 PAINEL DE MONITORIA & REORIENTAÇÃO</h2>
+    <h2 class="header-title">📋 PAINEL DE MONITORIA, REORIENTAÇÃO & JUSTIFICATIVA</h2>
     <button class="btn btn-outline" id="themeToggle" onclick="toggleTheme()">🌙 Modo Escuro</button>
   </div>
 
@@ -101,6 +105,7 @@
   <div class="mode-selector">
     <div id="btnModeMonitoria" class="mode-btn active" onclick="setModo('MONITORIA')">Ficha Visual de Monitoria</div>
     <div id="btnModeReorientacao" class="mode-btn" onclick="setModo('REORIENTACAO')">E-mail de Reorientação</div>
+    <div id="btnModeJustificativa" class="mode-btn" onclick="setModo('JUSTIFICATIVA')">Justificativa / Ocorrência</div>
   </div>
 
   <div class="grid-layout">
@@ -222,7 +227,13 @@
       <!-- VIEW 2: E-MAIL DE REORIENTAÇÃO -->
       <div id="viewReorientacao" class="preview-container" style="display: none;">
         <button class="btn btn-warning btn-block" style="margin-bottom: 15px;" onclick="copiarTextoReorientacao()">📋 Copiar Texto do E-mail</button>
-        <div id="reorientRender" class="reorient-box" spellcheck="true">---</div>
+        <div id="reorientRender" class="output-box" spellcheck="true">---</div>
+      </div>
+
+      <!-- VIEW 3: JUSTIFICATIVA / OCORRÊNCIA -->
+      <div id="viewJustificativa" class="preview-container" style="display: none;">
+        <button class="btn btn-teal btn-block" style="margin-bottom: 15px;" onclick="copiarTextoJustificativa()">📋 Copiar Justificativa</button>
+        <div id="justificativaRender" class="output-box" spellcheck="true">---</div>
       </div>
 
       <!-- HISTÓRICO DE REGISTROS -->
@@ -257,9 +268,12 @@
     modoAtual = modo;
     document.getElementById('btnModeMonitoria').classList.toggle('active', modo === 'MONITORIA');
     document.getElementById('btnModeReorientacao').classList.toggle('active', modo === 'REORIENTACAO');
+    document.getElementById('btnModeJustificativa').classList.toggle('active', modo === 'JUSTIFICATIVA');
     
     document.getElementById('viewMonitoria').style.display = modo === 'MONITORIA' ? 'block' : 'none';
     document.getElementById('viewReorientacao').style.display = modo === 'REORIENTACAO' ? 'block' : 'none';
+    document.getElementById('viewJustificativa').style.display = modo === 'JUSTIFICATIVA' ? 'block' : 'none';
+
     document.getElementById('groupReorientOptions').style.display = modo === 'REORIENTACAO' ? 'grid' : 'none';
     document.getElementById('rowNotas').style.display = modo === 'MONITORIA' ? 'grid' : 'none';
     
@@ -345,7 +359,7 @@
       document.getElementById('outMo').innerText = mo;
       document.getElementById('outAtendimento').innerText = atendimento;
       document.getElementById('outObservacao').innerText = observacao;
-    } else {
+    } else if (modoAtual === 'REORIENTACAO') {
       const textoEmail = `${saudacao}, ${supervisor}
 
 Solicito por gentileza REORIENTAÇÃO ao operador(a) ${operador}, devido os desvios identificados.
@@ -363,6 +377,12 @@ ${observacao}
 Qualquer dúvida estou a disposição!`;
 
       document.getElementById('reorientRender').innerText = textoEmail;
+    } else if (modoAtual === 'JUSTIFICATIVA') {
+      const textoJustificativa = `Data/Hora: ${dataHora}
+OBS: 
+${observacao}`;
+
+      document.getElementById('justificativaRender').innerText = textoJustificativa;
     }
   }
 
@@ -407,6 +427,16 @@ Qualquer dúvida estou a disposição!`;
     }
   }
 
+  async function copiarTextoJustificativa() {
+    const texto = document.getElementById('justificativaRender').innerText;
+    try {
+      await navigator.clipboard.writeText(texto);
+      showToast('Justificativa copiada!');
+    } catch (err) {
+      showToast('Erro ao copiar justificativa.');
+    }
+  }
+
   function salvarNoHistorico(rawText) {
     const op = document.getElementById('fieldOperador').value || 'Operador não identificado';
     const dt = document.getElementById('fieldDataRealizada').value || new Date().toLocaleDateString();
@@ -433,8 +463,9 @@ Qualquer dúvida estou a disposição!`;
           <strong>${escapeHtml(item.operador)}</strong> 
           <span style="color:var(--text-muted); font-size:11px;">(${escapeHtml(item.data)}) - <em>${item.tipo || 'MONITORIA'}</em></span>
         </div>
-        <div>
+        <div style="display: flex; gap: 5px; align-items: center;">
           <button class="btn btn-outline" style="padding:3px 6px; font-size:11px;" onclick="recarregarHistorico(${item.id})">Reabrir</button>
+          <button class="btn-remove-item" title="Excluir do Histórico" onclick="excluirItemHistorico(${item.id})">❌</button>
         </div>
       </div>
     `).join('');
@@ -450,6 +481,14 @@ Qualquer dúvida estou a disposição!`;
     }
   }
 
+  function excluirItemHistorico(id) {
+    let history = JSON.parse(localStorage.getItem('monitorias_history') || '[]');
+    history = history.filter(item => item.id !== id);
+    localStorage.setItem('monitorias_history', JSON.stringify(history));
+    carregarHistorico();
+    showToast('Registro removido do histórico.');
+  }
+
   function exportarHistorico() {
     const history = JSON.parse(localStorage.getItem('monitorias_history') || '[]');
     if (history.length === 0) {
@@ -457,7 +496,7 @@ Qualquer dúvida estou a disposição!`;
       return;
     }
     
-    let content = "=== HISTÓRICO DE MONITORIAS E REORIENTAÇÕES ===\n\n";
+    let content = "=== HISTÓRICO DE MONITORIAS, REORIENTAÇÕES E JUSTIFICATIVAS ===\n\n";
     history.forEach((h, index) => {
       content += `--- REGISTRO #${index + 1} (${h.operador} - ${h.data}) ---\n`;
       content += h.text + "\n\n";
