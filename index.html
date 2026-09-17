@@ -108,8 +108,11 @@
     <div>
       <div class="card">
         <div class="card-title">1. Cole o Relatório Bruto</div>
-        <textarea id="rawInput" rows="7" spellcheck="true" placeholder="Cole aqui o texto da monitoria..."></textarea>
-        <button class="btn btn-block" style="margin-top: 10px;" onclick="processarTexto()">⚡ Processar Dados</button>
+        <textarea id="rawInput" rows="7" spellcheck="true" placeholder="Cole aqui o texto da monitoria contendo Realizada, Operador, AQM, Monitoria, Registro de Atendimento, Ocorrências, etc..."></textarea>
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-top: 10px;">
+          <button class="btn btn-block" onclick="processarTexto()">⚡ Processar Dados</button>
+          <button class="btn btn-outline" onclick="limparRelatorioBruto()">🗑️ Limpar</button>
+        </div>
       </div>
 
       <div class="card">
@@ -152,7 +155,7 @@
         </div>
         <div class="form-group"><label>M.O.</label><input type="text" id="fieldMo" spellcheck="true" oninput="atualizarInterface()"></div>
         <div class="form-group"><label>Atendimento / Solicitação</label><textarea id="fieldAtendimento" rows="3" spellcheck="true" oninput="atualizarInterface()"></textarea></div>
-        <div class="form-group"><label>Observações / Desvios Identificados</label><textarea id="fieldObservacao" rows="3" spellcheck="true" oninput="atualizarInterface()"></textarea></div>
+        <div class="form-group"><label>Observações / Ocorrências Identificadas</label><textarea id="fieldObservacao" rows="3" spellcheck="true" oninput="atualizarInterface()"></textarea></div>
       </div>
     </div>
 
@@ -203,7 +206,10 @@
               <th>OBSERVAÇÕES / PONTOS DE ATENÇÃO</th>
             </tr>
             <tr>
-              <td><div id="outObservacao">---</div></td>
+              <td>
+                <p style="margin: 0 0 8px 0;"><strong>✨ Ponto Forte:</strong><br>Seu empenho reforça seu potencial. Com constância e foco, seus resultados serão cada vez maiores.</p>
+                <p style="margin: 0;"><strong>🔍 Ponto de Melhoria / Ocorrências:</strong><br><span id="outObservacao">---</span></p>
+              </td>
             </tr>
           </table>
 
@@ -239,7 +245,6 @@
 <script>
   let modoAtual = 'MONITORIA';
 
-  // ALTERNADOR DE TEMA (MODO CLARO / ESCURO)
   function toggleTheme() {
     const currentTheme = document.documentElement.getAttribute('data-theme');
     const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
@@ -261,6 +266,21 @@
     atualizarInterface();
   }
 
+  function limparRelatorioBruto() {
+    document.getElementById('rawInput').value = '';
+    document.getElementById('fieldDataRealizada').value = '';
+    document.getElementById('fieldOperador').value = '';
+    document.getElementById('fieldDataHora').value = '';
+    document.getElementById('fieldProtocolo').value = '';
+    document.getElementById('fieldNotaMonitoria').value = '';
+    document.getElementById('fieldNotaAqm').value = '';
+    document.getElementById('fieldMo').value = '';
+    document.getElementById('fieldAtendimento').value = '';
+    document.getElementById('fieldObservacao').value = '';
+    atualizarInterface();
+    showToast('Relatório bruto e campos limpos!');
+  }
+
   function processarTexto() {
     const raw = document.getElementById('rawInput').value;
     if (!raw.trim()) {
@@ -268,7 +288,7 @@
       return;
     }
 
-    const dataRealizadaMatch = raw.match(/Data Realizada:\s*(.*)/i);
+    const dataRealizadaMatch = raw.match(/(?:Data\s*)?Realizada:\s*(.*)/i);
     const operadorMatch = raw.match(/Operador\(a\):\s*(.*)/i);
     const dataHoraMatch = raw.match(/Data\/Hora:\s*(.*)/i);
     const protocoloMatch = raw.match(/Protocolo:\s*(.*)/i);
@@ -276,9 +296,9 @@
     const monitoriaMatch = raw.match(/Monitoria:\s*(\d+)/i) || raw.match(/Nota:\s*(\d+)/i);
     const moMatch = raw.match(/MO:\s*(.*)/i);
 
-    const atendimentoMatch = raw.match(/Atendimento[\s\S]*?MO:\s*[^\n]*\n([\s\S]*?)(?=Observação:|$)/i) || 
-                             raw.match(/Atendimento\s*\n([\s\S]*?)(?=Observação:|$)/i);
-    const obsMatch = raw.match(/(?:Observação|DESVIO):\s*([\s\S]*)/i);
+    const atendimentoMatch = raw.match(/(?:Registro de Atendimento|Atendimento)[\s\S]*?MO:\s*[^\n]*\n([\s\S]*?)(?=(?:Ocorrências|Observação|DESVIO):|$)/i) || 
+                             raw.match(/(?:Registro de Atendimento|Atendimento)\s*\n([\s\S]*?)(?=(?:Ocorrências|Observação|DESVIO):|$)/i);
+    const obsMatch = raw.match(/(?:Ocorrências|Observação|DESVIO):\s*([\s\S]*)/i);
 
     if (dataRealizadaMatch) document.getElementById('fieldDataRealizada').value = dataRealizadaMatch[1].trim();
     if (operadorMatch) document.getElementById('fieldOperador').value = operadorMatch[1].trim();
@@ -292,7 +312,7 @@
       document.getElementById('fieldAtendimento').value = atendimentoMatch[1].trim();
     } else if (raw.includes("Sr.ª") || raw.includes("Sra.")) {
       const fallback = raw.substring(raw.search(/Sr\.?ª?/i));
-      const obsIdx = fallback.search(/Observação:/i);
+      const obsIdx = fallback.search(/(?:Ocorrências|Observação):/i);
       document.getElementById('fieldAtendimento').value = obsIdx !== -1 ? fallback.substring(0, obsIdx).trim() : fallback.trim();
     }
 
