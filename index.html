@@ -2,150 +2,413 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Gerador de Feedback de Monitoria</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerador de Feedback de Monitoria de Qualidade</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+  
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f9; }
-    .container { max-width: 800px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    .form-group { margin-bottom: 12px; }
-    label { font-weight: bold; display: block; margin-bottom: 4px; }
-    input, textarea { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
-    
-    /* Caixa de Cola Automática */
-    .paste-box { background: #eef6ff; border: 2px dashed #0056b3; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
-    .paste-box label { color: #0056b3; font-size: 15px; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f1f5f9;
+      color: #1e293b;
+    }
 
-    .btn-group { display: flex; gap: 10px; margin-top: 15px; }
-    button { background-color: #0056b3; color: white; border: none; padding: 10px 15px; cursor: pointer; border-radius: 4px; font-weight: bold; }
-    button.secondary { background-color: #28a745; }
-    button:hover { opacity: 0.9; }
-    
-    /* Estilo do Documento de Feedback */
-    .preview { margin-top: 30px; border: 2px solid #000; padding: 15px; background: #fff; color: #000; max-width: 800px; margin-left: auto; margin-right: auto; }
-    .preview h2 { text-align: center; margin: 0 0 5px 0; font-size: 18px; text-transform: uppercase; }
-    .preview .sub-header { text-align: center; font-size: 12px; margin-bottom: 15px; font-weight: bold; }
-    .box { border: 1px solid #000; margin-bottom: 10px; padding: 8px; }
-    .box-title { font-weight: bold; text-transform: uppercase; border-bottom: 1px solid #000; padding-bottom: 4px; margin-bottom: 6px; font-size: 13px; }
-    .score { font-size: 16px; font-weight: bold; color: green; }
-    .footer-note { text-align: center; font-weight: bold; font-size: 11px; margin-top: 15px; text-transform: uppercase; }
-    
+    /* Estilos estritos para cópia e impressão do cartão corporativo */
+    .printable-card {
+      border: 2px solid #000000 !important;
+      background-color: #ffffff !important;
+      color: #000000 !important;
+      width: 100%;
+      max-width: 750px;
+      margin: 0 auto;
+      font-family: Arial, Helvetica, sans-serif !important;
+    }
+
+    .printable-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    .printable-table td, .printable-table th {
+      border: 1px solid #000000;
+      padding: 8px 10px;
+      font-size: 13px;
+      vertical-align: top;
+      word-wrap: break-word;
+    }
+
+    .printable-header-bg {
+      background-color: #f2f2f2 !important;
+      font-weight: bold;
+      text-transform: uppercase;
+      font-size: 13px;
+    }
+
+    .score-green {
+      color: #008000 !important;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .score-orange {
+      color: #d97706 !important;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .score-red {
+      color: #dc2626 !important;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
     @media print {
-      .no-print { display: none; }
-      .preview { border: 2px solid #000; width: 100%; }
+      .no-print {
+        display: none !important;
+      }
+      body {
+        background-color: #ffffff !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      .printable-card {
+        border: 2px solid #000000 !important;
+        box-shadow: none !important;
+        width: 100% !important;
+      }
     }
   </style>
 </head>
-<body>
+<body class="min-h-screen p-4 md:p-8">
 
-<div class="container no-print">
-  <h2>Gerador de Feedback Automático</h2>
-  
-  <!-- CAIXA PARA COLAR O TEXTO BRUTO -->
-  <div class="paste-box">
-    <label>📥 Cole o texto do seu formulário básico aqui:</label>
-    <textarea id="rawText" rows="6" placeholder="Cole aqui o texto contendo Data Realizada, Operador(a), Data/Hora, Protocolo, Observação, etc."></textarea>
-    <button style="margin-top: 8px;" onclick="extrairDados()">⚡ Extrair Dados Automático</button>
-  </div>
+<div class="max-w-6xl mx-auto space-y-6">
 
-  <hr>
+  <!-- Header Header App -->
+  <header class="no-print bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4">
+    <div class="flex items-center gap-3">
+      <div class="bg-blue-600 text-white p-3 rounded-lg shadow-md">
+        <i class="fa-solid fa-clipboard-check text-2xl"></i>
+      </div>
+      <div>
+        <h1 class="text-xl font-bold text-slate-800">Gerador de Feedback de Monitoria</h1>
+        <p class="text-sm text-slate-500">Gere fichas visuais padronizadas para envio no Outlook, Teams ou PDF</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
+        <i class="fa-solid fa-circle text-[8px]"></i> Pronto para Uso
+      </span>
+    </div>
+  </header>
 
-  <h3>Campos Extraídos (Conferência / Ajustes)</h3>
-  <div class="form-group"><label>Semana / Período:</label><input type="text" id="semana" placeholder="Ex: 15/09 a 21/09"></div>
-  <div class="form-group"><label>Operador(a):</label><input type="text" id="operador"></div>
-  <div class="form-group"><label>Data/Hora do Atendimento:</label><input type="text" id="dataHora"></div>
-  <div class="form-group"><label>Protocolo / MO:</label><input type="text" id="protocolo"></div>
-  <div class="form-group"><label>Resumo / Atendimento:</label><textarea id="resumo" rows="3"></textarea></div>
-  <div class="form-group"><label>Ponto Forte:</label><textarea id="pontoForte" rows="2"></textarea></div>
-  <div class="form-group"><label>Ponto de Melhoria:</label><textarea id="pontoMelhoria" rows="2"></textarea></div>
-  <div class="form-group"><label>Nota:</label><input type="text" id="nota" value="90"></div>
-  <div class="form-group"><label>Nota AQM:</label><input type="text" id="notaAqm" value="100"></div>
-  
-  <div class="btn-group">
-    <button onclick="gerarFeedback()">Atualizar Visualização</button>
-    <button class="secondary" onclick="window.print()">Salvar / Imprimir PDF</button>
-  </div>
-</div>
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+    
+    <!-- Formulário & Importação (Lado Esquerdo no Desktop) -->
+    <section class="no-print lg:col-span-5 bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-5">
+      
+      <div>
+        <label for="rawText" class="block text-sm font-semibold text-slate-700 mb-1 flex items-center justify-between">
+          <span><i class="fa-solid fa-paste text-blue-600 mr-1.5"></i> Cole o Relatório Bruto:</span>
+        </label>
+        <textarea id="rawText" rows="7" class="w-full text-xs p-3 font-mono bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="Data Realizada: 16/09/2026&#10;Operador(a): Lis Eduarda&#10;Data/Hora: 15/09/2026 15:23:49&#10;Protocolo: 32630520260915083879&#10;Atendimento&#10;MO: 094525486&#10;Sr.ª Fabiola..."></textarea>
+        
+        <button onclick="extrairDados()" class="mt-2 w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg shadow-sm transition-all text-sm flex items-center justify-center gap-2">
+          <i class="fa-solid fa-bolt"></i> Extrair Dados Automaticamente
+        </button>
+      </div>
 
-<!-- ÁREA DE VISUALIZAÇÃO DO CARTÃO -->
-<div class="preview" id="previewArea">
-  <h2>FEEDBACK MONITORIA</h2>
-  <div class="sub-header" id="outSemana">SEMANA DE MONITORIA</div>
+      <hr class="border-slate-200">
 
-  <div class="box">
-    <div><strong>OPERADOR(A):</strong> <span id="outOperador">---</span></div>
-    <div style="margin-top: 5px;"><strong>NOTA:</strong> <span class="score" id="outNota">--</span></div>
-  </div>
+      <div class="space-y-3">
+        <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+          <i class="fa-solid fa-sliders text-slate-500"></i> Ajuste dos Campos Extraídos
+        </h3>
 
-  <div class="box">
-    <div><strong>DATA/HORA ATENDIMENTO:</strong> <span id="outDataHora">---</span></div>
-    <div><strong>PROTOCOLO / MO:</strong> <span id="outProtocolo">---</span></div>
-  </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">Data Realizada:</label>
+            <input type="text" id="dataRealizada" class="w-full text-xs p-2 border border-slate-300 rounded focus:ring-1 focus:ring-blue-500" oninput="atualizarPreview()">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">Operador(a):</label>
+            <input type="text" id="operador" class="w-full text-xs p-2 border border-slate-300 rounded focus:ring-1 focus:ring-blue-500" oninput="atualizarPreview()">
+          </div>
+        </div>
 
-  <div class="box">
-    <div class="box-title">Descrição do Atendimento</div>
-    <div id="outResumo">---</div>
-  </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">Data/Hora Atendimento:</label>
+            <input type="text" id="dataHora" class="w-full text-xs p-2 border border-slate-300 rounded focus:ring-1 focus:ring-blue-500" oninput="atualizarPreview()">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">Protocolo:</label>
+            <input type="text" id="protocolo" class="w-full text-xs p-2 border border-slate-300 rounded focus:ring-1 focus:ring-blue-500" oninput="atualizarPreview()">
+          </div>
+        </div>
 
-  <div class="box">
-    <div class="box-title">Pontos de Desenvolvimento</div>
-    <p><strong>✨ Ponto Forte:</strong> <span id="outPontoForte">---</span></p>
-    <p><strong>🔍 Ponto de Melhoria:</strong> <span id="outPontoMelhoria">---</span></p>
-  </div>
+        <div class="grid grid-cols-3 gap-3">
+          <div class="col-span-1">
+            <label class="block text-xs font-medium text-slate-600 mb-1">M.O.:</label>
+            <input type="text" id="mo" class="w-full text-xs p-2 border border-slate-300 rounded focus:ring-1 focus:ring-blue-500" oninput="atualizarPreview()">
+          </div>
+          <div class="col-span-1">
+            <label class="block text-xs font-medium text-slate-600 mb-1">Nota Avaliação:</label>
+            <input type="text" id="nota" value="90" class="w-full text-xs p-2 border border-slate-300 rounded focus:ring-1 focus:ring-blue-500" oninput="atualizarPreview()">
+          </div>
+          <div class="col-span-1">
+            <label class="block text-xs font-medium text-slate-600 mb-1">Nota AQM:</label>
+            <input type="text" id="notaAqm" value="100" class="w-full text-xs p-2 border border-slate-300 rounded focus:ring-1 focus:ring-blue-500" oninput="atualizarPreview()">
+          </div>
+        </div>
 
-  <div class="box">
-    <div class="box-title">Feedback AQM</div>
-    <div><strong>NOTA AQM:</strong> <span class="score" id="outNotaAqm">--</span></div>
-  </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">Descrição do Atendimento:</label>
+          <textarea id="resumo" rows="4" class="w-full text-xs p-2 border border-slate-300 rounded focus:ring-1 focus:ring-blue-500" oninput="atualizarPreview()"></textarea>
+        </div>
 
-  <div class="footer-note">
-    QUALQUER DÚVIDA OU CONTESTAÇÃO, ACIONAR SUA SUPERVISÃO! OBRIGADO
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">Observações / Pontos de Melhoria:</label>
+          <textarea id="observacao" rows="3" class="w-full text-xs p-2 border border-slate-300 rounded focus:ring-1 focus:ring-blue-500" oninput="atualizarPreview()"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- Área de Visualização e Copia (Lado Direito no Desktop) -->
+    <section class="lg:col-span-7 space-y-4">
+      
+      <!-- Ações Principais -->
+      <div class="no-print bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-3">
+        <h2 class="text-sm font-bold text-slate-700 flex items-center gap-2">
+          <i class="fa-solid fa-eye text-blue-600"></i> Pré-visualização da Ficha
+        </h2>
+        <div class="flex items-center gap-2 flex-wrap">
+          <button onclick="copiarFeedback()" class="bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-3.5 rounded-lg shadow-sm text-xs flex items-center gap-2 transition-all">
+            <i class="fa-solid fa-copy"></i> Copiar Formatado
+          </button>
+          <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-3.5 rounded-lg shadow-sm text-xs flex items-center gap-2 transition-all">
+            <i class="fa-solid fa-file-pdf"></i> Imprimir / PDF
+          </button>
+        </div>
+      </div>
+
+      <!-- Toast Feedback de Cópia -->
+      <div id="toast" class="no-print hidden bg-emerald-50 border border-emerald-300 text-emerald-800 px-4 py-3 rounded-lg text-sm font-medium items-center gap-2 shadow-sm animate-bounce">
+        <i class="fa-solid fa-circle-check text-emerald-600"></i>
+        <span>Feedback formatado copiado! Basta colar (Ctrl+V) no Teams, Outlook ou Word.</span>
+      </div>
+
+      <!-- FICHA FORMATADA ESTILO TABELA CORPORATIVA -->
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+        <div id="previewCard" class="printable-card p-4">
+          
+          <div style="text-align: center; margin-bottom: 12px;">
+            <h2 style="font-size: 16px; font-weight: bold; margin: 0; padding: 0; text-transform: uppercase;">FEEDBACK MONITORIA</h2>
+            <div style="font-size: 11px; margin-top: 3px;" id="outDataRealizadaHeader">Data de Realização: --/--/----</div>
+          </div>
+
+          <table class="printable-table">
+            <!-- Operador & Nota -->
+            <tr>
+              <td colspan="4" style="padding: 10px;">
+                <div style="font-size: 13px;"><strong>Operador(a):</strong> <span id="outOperador">---</span></div>
+                <div style="margin-top: 6px; font-size: 13px;">
+                  <strong>NOTA:</strong> <span id="outNota" class="score-green">100</span>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Metadados do Atendimento -->
+            <tr>
+              <td class="printable-header-bg" style="width: 25%;">Protocolo:</td>
+              <td style="width: 25%; font-family: monospace;" id="outProtocolo">---</td>
+              <td class="printable-header-bg" style="width: 25%;">M.O.:</td>
+              <td style="width: 25%; font-family: monospace;" id="outMo">---</td>
+            </tr>
+            <tr>
+              <td class="printable-header-bg">Data do Atendimento:</td>
+              <td colspan="3" id="outDataHora">---</td>
+            </tr>
+
+            <!-- Descrição do Atendimento -->
+            <tr>
+              <td colspan="4" class="printable-header-bg" style="text-align: center;">DESCRIÇÃO DO ATENDIMENTO</td>
+            </tr>
+            <tr>
+              <td colspan="4" style="min-height: 80px; line-height: 1.5; text-align: justify; white-space: pre-line;" id="outResumo">
+                ---
+              </td>
+            </tr>
+
+            <!-- Desvios / Observações -->
+            <tr>
+              <td colspan="4" class="printable-header-bg" style="text-align: center;">OBSERVAÇÕES / PONTOS DE ATENÇÃO</td>
+            </tr>
+            <tr>
+              <td colspan="4" style="line-height: 1.5; white-space: pre-line;" id="outObservacao">
+                Nenhum desvio identificado.
+              </td>
+            </tr>
+
+            <!-- Feedback AQM -->
+            <tr>
+              <td colspan="4" style="padding: 10px;">
+                <div style="font-weight: bold; text-transform: uppercase; font-size: 12px; margin-bottom: 4px;">FEEDBACK AQM</div>
+                <div style="font-size: 13px;">
+                  <strong>NOTA AQM:</strong> <span id="outNotaAqm" class="score-green">100</span>
+                </div>
+              </td>
+            </tr>
+          </table>
+
+          <!-- Rodapé do Cartão -->
+          <div style="text-align: center; font-size: 11px; font-weight: bold; margin-top: 14px; text-transform: uppercase; border-top: 1px solid #000; padding-top: 8px;">
+            QUALQUER DÚVIDA OU CONTESTAÇÃO, ACIONAR SUA SUPERVISÃO! OBRIGADO
+          </div>
+
+        </div>
+      </div>
+
+    </section>
+
   </div>
 </div>
 
 <script>
+  // Exemplo padrão para carregamento inicial
+  const defaultText = `Data Realizada: 16/09/2026
+Operador(a): Lis Eduarda
+Data/Hora: 15/09/2026 15:23:49
+Protocolo: 32630520260915083879
+Atendimento
+MO: 094525486
+Sr.ª Fabiola entrou em contato pois deseja agendar consulta com Ginecologia de Telemedicina e verificar a situação do cadastro de seu app Amil. Em consulta, localizou disponibilidade com profissional e realizado agendamento. Direcionou a beneficiária para verificar a situação de seu app Amil para o beneficiários.
+Observação:
+- Antes/Depois de realizar a a transferência para el setor pertinente é necessário realizar o registro através do motivo 'Orientação Célula Correta Transferência'.`;
+
+  window.onload = function() {
+    document.getElementById('rawText').value = defaultText;
+    extrairDados();
+  };
+
   function extrairDados() {
     const text = document.getElementById('rawText').value;
 
-    // Padrões de busca por Regex
-    const opMatch = text.match(/Operador\(a\):\s*(.*)/i);
-    const dataHoraMatch = text.match(/Data\/Hora:\s*(.*)/i);
+    // Regex robustas para capturar campos mesmo com variações de espaçamento
     const dataRealizadaMatch = text.match(/Data Realizada:\s*(.*)/i);
-    const moMatch = text.match(/MO:\s*(.*)/i) || text.match(/Protocolo:\s*(.*)/i);
-    const forteMatch = text.match(/Ponto Forte:\s*(.*)/i);
-    const melhoriaMatch = text.match(/Ponto de Melhoria:\s*(.*)/i);
+    const operadorMatch = text.match(/Operador\(a\):\s*(.*)/i);
+    const dataHoraMatch = text.match(/Data\/Hora:\s*(.*)/i);
+    const protocoloMatch = text.match(/Protocolo:\s*(.*)/i);
+    const moMatch = text.match(/MO:\s*(.*)/i);
     const notaMatch = text.match(/Nota:\s*(\d+)/i);
-    const notaAqmMatch = text.match(/Observações do AQM:\s*(\d+)/i) || text.match(/Nota AQM:\s*(\d+)/i);
-    
-    // Tenta capturar o bloco de resumo/observação
-    const obsMatch = text.match(/(?:Resumo do Atendimento|Observação):\s*([\s\S]*?)(?=✨|🔍|📊|📝|Ponto Forte|Ponto de Melhoria|Nota|$)/i);
+    const notaAqmMatch = text.match(/Nota AQM:\s*(\d+)/i) || text.match(/Observações do AQM:\s*(\d+)/i);
 
-    if (opMatch) document.getElementById('operador').value = opMatch[1].trim();
-    if (dataHoraMatch) document.getElementById('dataHora').value = dataHoraMatch[1].trim();
-    if (moMatch) document.getElementById('protocolo').value = moMatch[1].trim();
-    if (forteMatch) document.getElementById('pontoForte').value = forteMatch[1].trim();
-    if (melhoriaMatch) document.getElementById('pontoMelhoria').value = melhoriaMatch[1].trim();
-    if (notaMatch) document.getElementById('nota').value = notaMatch[1].trim();
-    if (notaAqmMatch) document.getElementById('notaAqm').value = notaAqmMatch[1].trim();
-    if (obsMatch) document.getElementById('resumo').value = obsMatch[1].trim();
-    
-    if (dataRealizadaMatch) {
-      document.getElementById('semana').value = "Realizado em " + dataRealizadaMatch[1].trim();
+    // Captura o trecho de Atendimento (Tudo entre 'MO:' ou 'Atendimento' até 'Observação:')
+    let resumoText = "";
+    const resumoMatch = text.match(/(?:MO:\s*.*?\n|Atendimento\s*\n)([\s\S]*?)(?=Observação:|$)/i);
+    if (resumoMatch && resumoMatch[1]) {
+      resumoText = resumoMatch[1].trim();
     }
 
-    gerarFeedback();
+    // Captura o trecho da Observação (Tudo após 'Observação:')
+    let obsText = "";
+    const obsMatch = text.match(/Observação:\s*([\s\S]*)/i);
+    if (obsMatch && obsMatch[1]) {
+      obsText = obsMatch[1].trim();
+    }
+
+    // Atribui os valores aos inputs
+    document.getElementById('dataRealizada').value = dataRealizadaMatch ? dataRealizadaMatch[1].trim() : "";
+    document.getElementById('operador').value = operadorMatch ? operadorMatch[1].trim() : "";
+    document.getElementById('dataHora').value = dataHoraMatch ? dataHoraMatch[1].trim() : "";
+    document.getElementById('protocolo').value = protocoloMatch ? protocoloMatch[1].trim() : "";
+    document.getElementById('mo').value = moMatch ? moMatch[1].trim() : "";
+    document.getElementById('resumo').value = resumoText;
+    document.getElementById('observacao').value = obsText;
+    
+    if (notaMatch) document.getElementById('nota').value = notaMatch[1].trim();
+    if (notaAqmMatch) document.getElementById('notaAqm').value = notaAqmMatch[1].trim();
+
+    atualizarPreview();
   }
 
-  function gerarFeedback() {
-    document.getElementById('outSemana').innerText = document.getElementById('semana').value || "SEMANA DE MONITORIA";
-    document.getElementById('outOperador').innerText = document.getElementById('operador').value || "---";
-    document.getElementById('outNota').innerText = document.getElementById('nota').value || "--";
-    document.getElementById('outDataHora').innerText = document.getElementById('dataHora').value || "---";
-    document.getElementById('outProtocolo').innerText = document.getElementById('protocolo').value || "---";
-    document.getElementById('outResumo').innerText = document.getElementById('resumo').value || "---";
-    document.getElementById('outPontoForte').innerText = document.getElementById('pontoForte').value || "---";
-    document.getElementById('outPontoMelhoria').innerText = document.getElementById('pontoMelhoria').value || "---";
-    document.getElementById('outNotaAqm').innerText = document.getElementById('notaAqm').value || "--";
+  function atualizarPreview() {
+    const dataRealizada = document.getElementById('dataRealizada').value || "--/--/----";
+    const operador = document.getElementById('operador').value || "---";
+    const dataHora = document.getElementById('dataHora').value || "---";
+    const protocolo = document.getElementById('protocolo').value || "---";
+    const mo = document.getElementById('mo').value || "---";
+    const resumo = document.getElementById('resumo').value || "---";
+    const observacao = document.getElementById('observacao').value || "Nenhum desvio identificado.";
+    const nota = document.getElementById('nota').value || "100";
+    const notaAqm = document.getElementById('notaAqm').value || "100";
+
+    document.getElementById('outDataRealizadaHeader').innerText = "Data de Realização: " + dataRealizada;
+    document.getElementById('outOperador').innerText = operador;
+    document.getElementById('outDataHora').innerText = dataHora;
+    document.getElementById('outProtocolo').innerText = protocolo;
+    document.getElementById('outMo').innerText = mo;
+    document.getElementById('outResumo').innerText = resumo;
+    document.getElementById('outObservacao').innerText = observacao;
+
+    // Atualiza notas e aplica estilização por cor
+    atualizarNotaElemento('outNota', nota);
+    atualizarNotaElemento('outNotaAqm', notaAqm);
+  }
+
+  function atualizarNotaElemento(elementId, valor) {
+    const el = document.getElementById(elementId);
+    el.innerText = valor;
+    
+    const num = parseInt(valor, 10);
+    el.className = ""; // limpa
+    if (isNaN(num) || num >= 90) {
+      el.className = "score-green";
+    } else if (num >= 70) {
+      el.className = "score-orange";
+    } else {
+      el.className = "score-red";
+    }
+  }
+
+  async function copiarFeedback() {
+    atualizarPreview();
+    const cardElement = document.getElementById('previewCard');
+
+    try {
+      // Monta HTML completo com estilos embutidos para garantir colar idêntico no Teams/Outlook
+      const htmlContent = `
+        <div style="font-family: Arial, Helvetica, sans-serif; background-color: #ffffff; padding: 10px;">
+          ${cardElement.innerHTML}
+        </div>
+      `;
+
+      const blobHtml = new Blob([htmlContent], { type: 'text/html' });
+      const blobText = new Blob([cardElement.innerText], { type: 'text/plain' });
+
+      const clipboardItem = new ClipboardItem({
+        'text/html': blobHtml,
+        'text/plain': blobText
+      });
+
+      await navigator.clipboard.write([clipboardItem]);
+
+      // Exibe toast de sucesso
+      const toast = document.getElementById('toast');
+      toast.classList.remove('hidden');
+      toast.classList.add('flex');
+      setTimeout(() => {
+        toast.classList.add('hidden');
+        toast.classList.remove('flex');
+      }, 3500);
+
+    } catch (err) {
+      console.error("Erro ao copiar:", err);
+      alert("Não foi possível copiar automaticamente. Selecione o cartão com o mouse e pressione Ctrl+C.");
+    }
   }
 </script>
-
 </body>
 </html>
