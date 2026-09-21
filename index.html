@@ -6,6 +6,8 @@
   <title>Gerador de Monitoria e Reorientação</title>
   <!-- html2canvas para conversão da ficha em imagem PNG -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <!-- SheetJS para exportação nativa de planilhas Excel (.xlsx) -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
     :root {
       --bg-color: #f0f2f5;
@@ -243,6 +245,7 @@
         <div class="card-title">
           <span>📜 Histórico Salvo Automático</span>
           <div style="display: flex; gap: 5px;">
+            <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;" onclick="exportarExcel()">📊 Exportar (.xlsx)</button>
             <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11px;" onclick="exportarHistorico()">📥 Baixar (.txt)</button>
             <button class="btn btn-danger" onclick="limparHistorico()">Limpar Tudo</button>
           </div>
@@ -257,7 +260,7 @@
 
 <script>
   let modoAtual = 'MONITORIA';
-  let currentEditingId = null; // Armazena o ID do registro sendo reaberto para evitar duplicação
+  let currentEditingId = null;
 
   function toggleTheme() {
     const currentTheme = document.documentElement.getAttribute('data-theme');
@@ -282,7 +285,7 @@
   }
 
   function limparRelatorioBruto() {
-    currentEditingId = null; // Libera o ID de edição para permitir criar novos registros
+    currentEditingId = null;
     document.getElementById('rawInput').value = '';
     document.getElementById('fieldDataRealizada').value = '';
     document.getElementById('fieldOperador').value = '';
@@ -351,7 +354,6 @@
     const supervisor = document.getElementById('fieldSupervisor').value;
     const saudacao = document.getElementById('fieldSaudacao').value;
 
-    // Atualiza a Ficha Visual
     document.getElementById('outDataRealizada').innerText = dataRealizada;
     document.getElementById('outOperador').innerText = operador;
     document.getElementById('outDataHora').innerText = dataHora;
@@ -362,10 +364,8 @@
     document.getElementById('outAtendimento').innerText = atendimento;
     document.getElementById('outObservacao').innerText = observacao;
 
-    // Atualiza a Justificativa / Ocorrência rápida
     document.getElementById('justificativaRender').innerText = `Data/Hora: ${dataHora}\nOBS:\n${observacao}`;
 
-    // Atualiza o E-mail de Reorientação
     const textoEmail = `${saudacao}, ${supervisor}
 
 Solicito por gentileza REORIENTAÇÃO ao operador(a) ${operador}, devido os desvios identificados.
@@ -442,7 +442,6 @@ Qualquer dúvida estou a disposição!`;
     
     let history = JSON.parse(localStorage.getItem('monitorias_history') || '[]');
     
-    // Se estiver reabrindo um item existente, atualiza ele em vez de duplicar
     if (currentEditingId !== null) {
       const index = history.findIndex(h => h.id === currentEditingId);
       if (index !== -1) {
@@ -453,7 +452,6 @@ Qualquer dúvida estou a disposição!`;
       }
     }
 
-    // Caso seja uma nova monitoria, cria um novo id
     const newId = Date.now();
     currentEditingId = newId;
     history.unshift({ id: newId, operador: op, data: dt, text: rawText, tipo: modoAtual });
@@ -489,7 +487,7 @@ Qualquer dúvida estou a disposição!`;
     const history = JSON.parse(localStorage.getItem('monitorias_history') || '[]');
     const item = history.find(h => h.id === id);
     if (item) {
-      currentEditingId = item.id; // Marca que este ID está em edição ativa
+      currentEditingId = item.id;
       document.getElementById('rawInput').value = item.text;
       if (item.tipo) setModo(item.tipo);
       processarTexto();
@@ -504,6 +502,53 @@ Qualquer dúvida estou a disposição!`;
     localStorage.setItem('monitorias_history', JSON.stringify(history));
     carregarHistorico();
     showToast('Registro removido do histórico.');
+  }
+
+  function exportarExcel() {
+    const history = JSON.parse(localStorage.getItem('monitorias_history') || '[]');
+    if (history.length === 0) {
+      showToast('Nenhum histórico para exportar.');
+      return;
+    }
+
+    const dataRows = history.map(h => {
+      const raw = h.text || '';
+      const dataRealizadaMatch = raw.match(/(?:Data\s*)?Realizada:\s*(.*)/i);
+      const operadorMatch = raw.match(/Operador\(a\):\s*(.*)/i);
+      const dataHoraMatch = raw.match(/Data\/Hora:\s*(.*)/i);
+      const protocoloMatch = raw.match(/Protocolo:\s*(.*)/i);
+      const aqmMatch = raw.match(/AQM:\s*(\d+)/i);
+      const monitoriaMatch = raw.match(/Monitoria:\s*(\d+)/i) || raw.match(/Nota:\s*(\d+)/i);
+      const moMatch = raw.match(/MO:\s*(.*)/i);
+      const atendimentoMatch = raw.match(/(?:Registro de Atendimento|Atendimento)[\s\S]*?MO:\s*[^\n]*\n([\s\S]*?)(?=(?:Ocorrências|Observação|DESVIO):|$)/i);
+      const obsMatch = raw.match(/(?:Ocorrências|Observação|DESVIO):\s*([\s\S]*)/i);
+
+      return {
+        "Tipo": h.tipo || 'MONITORIA',
+        "Data Realizada": dataRealizadaMatch ? dataRealizadaMatch[1].trim() : h.data,
+        "Operador(a)": operadorMatch ? operadorMatch[1].trim() : h.operador,
+        "Data/Hora Atendimento": dataHoraMatch ? dataHoraMatch[1].trim() : '',
+        "Protocolo": protocoloMatch ? protocoloMatch[1].trim() : '',
+        "Nota Monitoria": monitoriaMatch ? monitoriaMatch[1].trim() : '',
+        "Nota AQM": aqmMatch ? aqmMatch[1].trim() : '',
+        "M.O.": moMatch ? moMatch[1].trim() : '',
+        "Solicitação / Atendimento": atendimentoMatch ? atendimentoMatch[1].trim() : '',
+        "Observações / Desvios": obsMatch ? obsMatch[1].trim() : ''
+      };
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(dataRows);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Monitorias");
+
+    // Ajusta a largura automática das colunas no Excel
+    const max_width = dataRows.reduce((w, r) => {
+      return Object.keys(r).map((k, i) => Math.max(w[i] || 15, String(r[k]).length, k.length));
+    }, []);
+    worksheet['!cols'] = max_width.map(w => ({ wch: Math.min(w + 2, 50) }));
+
+    XLSX.writeFile(workbook, `Relatorio_Monitorias_${new Date().toISOString().slice(0,10)}.xlsx`);
+    showToast('Planilha Excel gerada com sucesso!');
   }
 
   function exportarHistorico() {
