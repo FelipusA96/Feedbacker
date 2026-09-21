@@ -257,6 +257,7 @@
 
 <script>
   let modoAtual = 'MONITORIA';
+  let currentEditingId = null; // Armazena o ID do registro sendo reaberto para evitar duplicação
 
   function toggleTheme() {
     const currentTheme = document.documentElement.getAttribute('data-theme');
@@ -281,6 +282,7 @@
   }
 
   function limparRelatorioBruto() {
+    currentEditingId = null; // Libera o ID de edição para permitir criar novos registros
     document.getElementById('rawInput').value = '';
     document.getElementById('fieldDataRealizada').value = '';
     document.getElementById('fieldOperador').value = '';
@@ -439,7 +441,22 @@ Qualquer dúvida estou a disposição!`;
     const dt = document.getElementById('fieldDataRealizada').value || new Date().toLocaleDateString();
     
     let history = JSON.parse(localStorage.getItem('monitorias_history') || '[]');
-    history.unshift({ id: Date.now(), operador: op, data: dt, text: rawText, tipo: modoAtual });
+    
+    // Se estiver reabrindo um item existente, atualiza ele em vez de duplicar
+    if (currentEditingId !== null) {
+      const index = history.findIndex(h => h.id === currentEditingId);
+      if (index !== -1) {
+        history[index] = { id: currentEditingId, operador: op, data: dt, text: rawText, tipo: modoAtual };
+        localStorage.setItem('monitorias_history', JSON.stringify(history));
+        carregarHistorico();
+        return;
+      }
+    }
+
+    // Caso seja uma nova monitoria, cria um novo id
+    const newId = Date.now();
+    currentEditingId = newId;
+    history.unshift({ id: newId, operador: op, data: dt, text: rawText, tipo: modoAtual });
     if (history.length > 50) history.pop();
     localStorage.setItem('monitorias_history', JSON.stringify(history));
     carregarHistorico();
@@ -472,15 +489,18 @@ Qualquer dúvida estou a disposição!`;
     const history = JSON.parse(localStorage.getItem('monitorias_history') || '[]');
     const item = history.find(h => h.id === id);
     if (item) {
+      currentEditingId = item.id; // Marca que este ID está em edição ativa
       document.getElementById('rawInput').value = item.text;
       if (item.tipo) setModo(item.tipo);
       processarTexto();
+      showToast('Registro reaberto para edição.');
     }
   }
 
   function excluirItemHistorico(id) {
     let history = JSON.parse(localStorage.getItem('monitorias_history') || '[]');
     history = history.filter(item => item.id !== id);
+    if (currentEditingId === id) currentEditingId = null;
     localStorage.setItem('monitorias_history', JSON.stringify(history));
     carregarHistorico();
     showToast('Registro removido do histórico.');
@@ -509,6 +529,7 @@ Qualquer dúvida estou a disposição!`;
   function limparHistorico() {
     if (confirm('Deseja realmente apagar todo o histórico de registros?')) {
       localStorage.removeItem('monitorias_history');
+      currentEditingId = null;
       carregarHistorico();
       showToast('Histórico apagado!');
     }
