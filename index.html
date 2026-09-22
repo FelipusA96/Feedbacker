@@ -123,30 +123,586 @@
     .footer-warning { border-top: 1px solid #000000; padding: 12px; text-align: center; font-weight: bold; font-size: 11px; text-transform: uppercase; margin-top: 15px; }
 
     /* CAIXAS DE SAÍDA */
-    .output-box { background: #fdfbf7; border: 1px solid #Análise do cálculo do determinante da matriz $A$:
+    .output-box { background: #fdfbf7; border: 1px solid #e0b034; padding: 12px; border-radius: 6px; font-family: monospace; font-size: 13px; white-space: pre-wrap; line-height: 1.5; color: #222222; }
 
-$$A = \begin{pmatrix} 2 & 1 & 0 \\ 4 & 0 & 2 \\ 3 & 5 & 1 \end{pmatrix}$$
+    /* HISTÓRICO */
+    .history-list { max-height: 250px; overflow-y: auto; margin-top: 10px; }
+    .history-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid var(--border-color); font-size: 13px; }
+    .history-item:hover { background-color: var(--history-hover); }
+    .toast { position: fixed; bottom: 20px; right: 20px; background: #323232; color: #fff; padding: 12px 24px; border-radius: 6px; font-size: 14px; display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 999; }
+  </style>
+</head>
+<body>
 
-Utilizando a **Regra de Sarrus** para matrizes $3 \times 3$:
+<div class="app-container">
+  <div class="header-bar">
+    <h2 class="header-title">📋 PAINEL DE MONITORIA & REORIENTAÇÃO</h2>
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <!-- CONTADOR DE REGISTROS -->
+      <div class="counter-badge">
+        <span>Realizadas:</span>
+        <span id="totalCounter" class="counter-number">0</span>
+      </div>
+      <button class="btn btn-outline" id="themeToggle" onclick="toggleTheme()">🌙 Modo Escuro</button>
+    </div>
+  </div>
 
-$$\det(A) = (a_{11}a_{22}a_{33} + a_{12}a_{23}a_{31} + a_{13}a_{21}a_{32}) - (a_{13}a_{22}a_{31} + a_{11}a_{23}a_{32} + a_{12}a_{21}a_{33})$$
+  <!-- SELETOR DE MODO DE OPERAÇÃO -->
+  <div class="mode-selector">
+    <div id="btnModeMonitoria" class="mode-btn active" onclick="setModo('MONITORIA')">Ficha Visual de Monitoria</div>
+    <div id="btnModeReorientacao" class="mode-btn" onclick="setModo('REORIENTACAO')">E-mail de Reorientação</div>
+  </div>
 
-**1. Diagonais Principais (soma):**
-* $2 \cdot 0 \cdot 1 = 0$
-* $1 \cdot 2 \cdot 3 = 6$
-* $0 \cdot 4 \cdot 5 = 0$
+  <div class="grid-layout">
+    <!-- COLUNA ESQUERDA: FORMULÁRIO -->
+    <div>
+      <div class="card">
+        <div class="card-title">1. Cole o Relatório Bruto</div>
+        <textarea id="rawInput" rows="7" spellcheck="true" placeholder="Cole aqui o texto da monitoria contendo Realizada, Operador, AQM, Monitoria, Registro de Atendimento, Ocorrências, etc..."></textarea>
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-top: 10px;">
+          <button class="btn btn-block" onclick="processarTexto()">⚡ Processar Dados</button>
+          <button class="btn btn-outline" onclick="limparRelatorioBruto()">🗑️ Limpar</button>
+        </div>
+      </div>
 
-$$\text{Soma das diagonais principais} = 0 + 6 + 0 = 6$$
+      <div class="card">
+        <div class="card-title">2. Dados do Registro</div>
 
-**2. Diagonais Secundárias (subtração):**
-* $0 \cdot 0 \cdot 3 = 0$
-* $2 \cdot 2 \cdot 5 = 20$
-* $1 \cdot 4 \cdot 1 = 4$
+        <!-- OPÇÕES ADICIONAIS PARA REORIENTAÇÃO -->
+        <div class="form-row" id="groupReorientOptions" style="display: none;">
+          <div class="form-group">
+            <label>Saudação / Período</label>
+            <select id="fieldSaudacao" onchange="atualizarInterface()">
+              <option value="Boa tarde">Boa tarde</option>
+              <option value="Bom dia">Bom dia</option>
+              <option value="Boa noite">Boa noite</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Supervisor Responsável</label>
+            <select id="fieldSupervisor" onchange="atualizarInterface()">
+              <option value="Kelvin">Kelvin</option>
+              <option value="Eliane">Eliane</option>
+              <option value="José">José</option>
+              <option value="Leidiane">Leidiane</option>
+              <option value="Diogo">Diogo</option>
+              <option value="Pamela">Pamela</option>
+            </select>
+          </div>
+        </div>
 
-$$\text{Soma das diagonais secundárias} = 0 + 20 + 4 = 24$$
+        <div class="form-row">
+          <div class="form-group"><label>Data Realizada *</label><input type="text" id="fieldDataRealizada" spellcheck="true" oninput="validarECarregar()"></div>
+          <div class="form-group"><label>Operador(a) *</label><input type="text" id="fieldOperador" spellcheck="true" oninput="validarECarregar()"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Data/Hora Atendimento *</label><input type="text" id="fieldDataHora" spellcheck="true" oninput="validarECarregar()"></div>
+          <div class="form-group"><label>Protocolo *</label><input type="text" id="fieldProtocolo" spellcheck="true" oninput="validarECarregar()"></div>
+        </div>
+        <div class="form-row" id="rowNotas">
+          <div class="form-group"><label>Nota Monitoria</label><input type="text" id="fieldNotaMonitoria" spellcheck="true" oninput="validarECarregar()"></div>
+          <div class="form-group"><label>Nota AQM</label><input type="text" id="fieldNotaAqm" spellcheck="true" oninput="validarECarregar()"></div>
+        </div>
+        <div class="form-group"><label>M.O. *</label><input type="text" id="fieldMo" spellcheck="true" oninput="validarECarregar()"></div>
+        <div class="form-group"><label>Atendimento / Solicitação *</label><textarea id="fieldAtendimento" rows="3" spellcheck="true" oninput="validarECarregar()"></textarea></div>
+        <div class="form-group"><label>Observações / Ocorrências Identificadas *</label><textarea id="fieldObservacao" rows="3" spellcheck="true" oninput="validarECarregar()"></textarea></div>
+      </div>
+    </div>
 
-**3. Resultado Final:**
+    <!-- COLUNA DIREITA: PREVIEW -->
+    <div>
+      <!-- VIEW 1: FICHA DE MONITORIA -->
+      <div id="viewMonitoria" class="preview-container">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+          <button class="btn btn-secondary" onclick="copiarFichaFormatada()">📋 Copiar Formatado</button>
+          <button class="btn btn-purple" onclick="copiarFichaComoImagem()">🖼️ Copiar como Imagem</button>
+        </div>
 
-$$\det(A) = 6 - 24 = -18$$
+        <div id="fichaRender" class="sheet" spellcheck="true">
+          <div class="sheet-header">FEEDBACK MONITORIA</div>
+          <div class="sheet-subheader">Data de Realização: <span id="outDataRealizada">---</span></div>
 
-O determinante correto da matriz é **$-18$**.
+          <table class="sheet-table">
+            <tr>
+              <td colspan="2"><strong>Operador(a):</strong> <span id="outOperador">---</span></td>
+            </tr>
+            <tr class="bg-gray">
+              <td width="50%"><strong>NOTA MONITORIA:</strong> <span id="outNotaMonitoria" class="score-badge">--</span></td>
+              <td width="50%"><strong>NOTA AQM:</strong> <span id="outNotaAqm" class="score-badge">--</span></td>
+            </tr>
+          </table>
+
+          <table class="sheet-table">
+            <tr>
+              <td width="50%"><strong>PROTOCOLO:</strong> <br><span id="outProtocolo">---</span></td>
+              <td width="50%"><strong>M.O.:</strong> <br><span id="outMo">---</span></td>
+            </tr>
+            <tr>
+              <td colspan="2"><strong>DATA DO ATENDIMENTO:</strong> <span id="outDataHora">---</span></td>
+            </tr>
+          </table>
+
+          <table class="sheet-table">
+            <tr>
+              <th>DESCRIÇÃO DO ATENDIMENTO</th>
+            </tr>
+            <tr>
+              <td><div id="outAtendimento">---</div></td>
+            </tr>
+          </table>
+
+          <table class="sheet-table">
+            <tr>
+              <th>OBSERVAÇÕES / PONTOS DE ATENÇÃO</th>
+            </tr>
+            <tr>
+              <td>
+                <p style="margin: 0 0 8px 0;"><strong>✨ Ponto Forte:</strong><br>Seu empenho reforça seu potencial. Com constância e foco, seus resultados serão cada vez maiores.</p>
+                <p style="margin: 0;"><strong>🔍 Ponto de Melhoria / Ocorrências:</strong><br><span id="outObservacao">---</span></p>
+              </td>
+            </tr>
+          </table>
+
+          <div class="footer-warning">
+            QUALQUER DÚVIDA OU CONTESTAÇÃO, ACIONAR SUA SUPERVISÃO! OBRIGADO
+          </div>
+        </div>
+
+        <!-- JUSTIFICATIVA / OCORRÊNCIA RÁPIDA DENTRO DA MESMA FICHA -->
+        <div style="margin-top: 20px; border-top: 2px dashed var(--border-color); padding-top: 15px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <label style="margin: 0;">📝 Justificativa / Ocorrência Rápida</label>
+            <button class="btn btn-teal" style="padding: 4px 10px; font-size: 11px;" onclick="copiarTextoJustificativa()">📋 Copiar Justificativa</button>
+          </div>
+          <div id="justificativaRender" class="output-box" spellcheck="true">---</div>
+        </div>
+      </div>
+
+      <!-- VIEW 2: E-MAIL DE REORIENTAÇÃO -->
+      <div id="viewReorientacao" class="preview-container" style="display: none;">
+        <button class="btn btn-warning btn-block" style="margin-bottom: 15px;" onclick="copiarTextoReorientacao()">📋 Copiar Texto do E-mail</button>
+        <div id="reorientRender" class="output-box" spellcheck="true">---</div>
+      </div>
+
+      <!-- HISTÓRICO DE REGISTROS -->
+      <div class="card" style="margin-top: 20px;">
+        <div class="card-title">
+          <span>📜 Histórico Salvo Automático</span>
+          <div style="display: flex; gap: 5px;">
+            <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;" onclick="exportarExcel()">📊 Exportar (.xlsx)</button>
+            <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11px;" onclick="exportarHistorico()">📥 Baixar (.txt)</button>
+            <button class="btn btn-danger" onclick="limparHistorico()">Limpar Tudo</button>
+          </div>
+        </div>
+        <div id="historyContainer" class="history-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast">Texto copiado com sucesso!</div>
+
+<script>
+  let modoAtual = 'MONITORIA';
+  let currentEditingId = null;
+
+  const camposObrigatorios = [
+    'fieldDataRealizada',
+    'fieldOperador',
+    'fieldDataHora',
+    'fieldProtocolo',
+    'fieldMo',
+    'fieldAtendimento',
+    'fieldObservacao'
+  ];
+
+  function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    document.getElementById('themeToggle').innerText = newTheme === 'dark' ? '☀️ Modo Claro' : '🌙 Modo Escuro';
+    localStorage.setItem('theme_preference', newTheme);
+  }
+
+  function setModo(modo) {
+    modoAtual = modo;
+    document.getElementById('btnModeMonitoria').classList.toggle('active', modo === 'MONITORIA');
+    document.getElementById('btnModeReorientacao').classList.toggle('active', modo === 'REORIENTACAO');
+    
+    document.getElementById('viewMonitoria').style.display = modo === 'MONITORIA' ? 'block' : 'none';
+    document.getElementById('viewReorientacao').style.display = modo === 'REORIENTACAO' ? 'block' : 'none';
+
+    document.getElementById('groupReorientOptions').style.display = modo === 'REORIENTACAO' ? 'grid' : 'none';
+    document.getElementById('rowNotas').style.display = modo === 'MONITORIA' ? 'grid' : 'none';
+    
+    atualizarInterface();
+  }
+
+  function limparErrosVisuais() {
+    camposObrigatorios.forEach(id => {
+      const elem = document.getElementById(id);
+      if (elem) elem.classList.remove('field-error');
+    });
+  }
+
+  function limparRelatorioBruto() {
+    currentEditingId = null;
+    document.getElementById('rawInput').value = '';
+    camposObrigatorios.concat(['fieldNotaMonitoria', 'fieldNotaAqm']).forEach(id => {
+      const elem = document.getElementById(id);
+      if (elem) elem.value = '';
+    });
+    limparErrosVisuais();
+    atualizarInterface();
+    showToast('Relatório bruto e campos limpos!');
+  }
+
+  function validarECarregar() {
+    limparErrosVisuais();
+    atualizarInterface();
+  }
+
+  function verificarCamposFaltantes() {
+    let faltantes = [];
+    camposObrigatorios.forEach(id => {
+      const elem = document.getElementById(id);
+      if (!elem || !elem.value.trim()) {
+        if (elem) elem.classList.add('field-error');
+        faltantes.push(id);
+      } else {
+        if (elem) elem.classList.remove('field-error');
+      }
+    });
+    return faltantes;
+  }
+
+  function processarTexto() {
+    const raw = document.getElementById('rawInput').value;
+    if (!raw.trim()) {
+      showToast('Por favor, cole algum texto primeiro.');
+      return;
+    }
+
+    limparErrosVisuais();
+
+    const dataRealizadaMatch = raw.match(/(?:Data\s*)?Realizada:\s*(.*)/i);
+    const operadorMatch = raw.match(/Operador\(a\):\s*(.*)/i);
+    
+    // Captura estrita da Data/Hora do Atendimento (procura data DD/MM/AAAA)
+    const dataHoraMatch = raw.match(/Data\/Hora:\s*(\d{2}\/\d{2}\/\d{4}(?:\s+\d{2}:\d{2}:\d{2})?)/i) || 
+                          raw.match(/Data\/Hora:\s*([^\n\r]+)/i);
+                          
+    const protocoloMatch = raw.match(/Protocolo:\s*(\d+)/i) || raw.match(/Protocolo:\s*(.*)/i);
+    const aqmMatch = raw.match(/AQM:\s*(\d+)/i);
+    const monitoriaMatch = raw.match(/Monitoria:\s*(\d+)/i) || raw.match(/Nota:\s*(\d+)/i);
+    const moMatch = raw.match(/MO:\s*(\d+)/i) || raw.match(/MO:\s*(.*)/i);
+
+    const atendimentoMatch = raw.match(/(?:Registro de Atendimento|Atendimento)[\s\S]*?MO:\s*[^\n]*\n([\s\S]*?)(?=(?:Ocorrências|Observação|DESVIO):|$)/i) || 
+                             raw.match(/(?:Registro de Atendimento|Atendimento)\s*\n([\s\S]*?)(?=(?:Ocorrências|Observação|DESVIO):|$)/i);
+    const obsMatch = raw.match(/(?:Ocorrências|Observação|DESVIO):\s*([\s\S]*)/i);
+
+    document.getElementById('fieldDataRealizada').value = dataRealizadaMatch ? dataRealizadaMatch[1].trim() : '';
+    document.getElementById('fieldOperador').value = operadorMatch ? operadorMatch[1].trim() : '';
+    
+    // Garante que o campo de Data/Hora não venha com a palavra Protocolo
+    if (dataHoraMatch && !dataHoraMatch[1].toLowerCase().includes('protocolo')) {
+      document.getElementById('fieldDataHora').value = dataHoraMatch[1].trim();
+    } else {
+      document.getElementById('fieldDataHora').value = '';
+    }
+
+    document.getElementById('fieldProtocolo').value = protocoloMatch ? protocoloMatch[1].replace(/Protocolo:\s*/i, '').trim() : '';
+    document.getElementById('fieldNotaAqm').value = aqmMatch ? aqmMatch[1].trim() : '';
+    document.getElementById('fieldNotaMonitoria').value = monitoriaMatch ? monitoriaMatch[1].trim() : '';
+    document.getElementById('fieldMo').value = moMatch ? moMatch[1].replace(/MO:\s*/i, '').trim() : '';
+
+    if (atendimentoMatch) {
+      document.getElementById('fieldAtendimento').value = atendimentoMatch[1].trim();
+    } else if (raw.includes("Sr.ª") || raw.includes("Sra.")) {
+      const fallback = raw.substring(raw.search(/Sr\.?ª?/i));
+      const obsIdx = fallback.search(/(?:Ocorrências|Observação):/i);
+      document.getElementById('fieldAtendimento').value = obsIdx !== -1 ? fallback.substring(0, obsIdx).trim() : fallback.trim();
+    } else {
+      document.getElementById('fieldAtendimento').value = '';
+    }
+
+    document.getElementById('fieldObservacao').value = obsMatch ? obsMatch[1].trim() : '';
+
+    atualizarInterface();
+
+    // Executa a verificação dos campos
+    const camposFaltantes = verificarCamposFaltantes();
+
+    if (camposFaltantes.length > 0) {
+      showToast('⚠️ Informações incompletas! Preencha os campos em vermelho para salvar.');
+      return; // NÃO realiza o registro no Histórico Salvo Automático
+    }
+
+    salvarNoHistorico(raw);
+    showToast('⚡ Dados processados e salvos com sucesso!');
+  }
+
+  function atualizarInterface() {
+    const dataRealizada = document.getElementById('fieldDataRealizada').value || '---';
+    const operador = document.getElementById('fieldOperador').value || '---';
+    const dataHora = document.getElementById('fieldDataHora').value || '---';
+    const protocolo = document.getElementById('fieldProtocolo').value || '---';
+    const notaMonitoria = document.getElementById('fieldNotaMonitoria').value || '--';
+    const notaAqm = document.getElementById('fieldNotaAqm').value || '--';
+    const mo = document.getElementById('fieldMo').value || '---';
+    const atendimento = document.getElementById('fieldAtendimento').value || '---';
+    const observacao = document.getElementById('fieldObservacao').value || '---';
+    const supervisor = document.getElementById('fieldSupervisor').value;
+    const saudacao = document.getElementById('fieldSaudacao').value;
+
+    document.getElementById('outDataRealizada').innerText = dataRealizada;
+    document.getElementById('outOperador').innerText = operador;
+    document.getElementById('outDataHora').innerText = dataHora;
+    document.getElementById('outProtocolo').innerText = protocolo;
+    document.getElementById('outNotaMonitoria').innerText = notaMonitoria;
+    document.getElementById('outNotaAqm').innerText = notaAqm;
+    document.getElementById('outMo').innerText = mo;
+    document.getElementById('outAtendimento').innerText = atendimento;
+    document.getElementById('outObservacao').innerText = observacao;
+
+    document.getElementById('justificativaRender').innerText = `Data/Hora: ${dataHora}\nOBS:\n${observacao}`;
+
+    const textoEmail = `${saudacao}, ${supervisor}
+
+Solicito por gentileza REORIENTAÇÃO ao operador(a) ${operador}, devido os desvios identificados.
+
+Data/Hora: ${dataHora}
+Protocolo: ${protocolo}
+Operador(a): ${operador}
+
+SOLICITAÇÃO:
+${atendimento}
+
+DESVIO:
+${observacao}
+
+Qualquer dúvida estou a disposição!`;
+
+    document.getElementById('reorientRender').innerText = textoEmail;
+  }
+
+  async function copiarFichaFormatada() {
+    const fichaElement = document.getElementById('fichaRender');
+    try {
+      const blobHtml = new Blob([fichaElement.outerHTML], { type: 'text/html' });
+      const blobText = new Blob([fichaElement.innerText], { type: 'text/plain' });
+      await navigator.clipboard.write([new ClipboardItem({ 'text/html': blobHtml, 'text/plain': blobText })]);
+      showToast('Ficha de monitoria copiada com sucesso!');
+    } catch (err) {
+      showToast('Erro ao copiar ficha.');
+    }
+  }
+
+  async function copiarFichaComoImagem() {
+    const fichaElement = document.getElementById('fichaRender');
+    try {
+      showToast('Gerando imagem...');
+      const canvas = await html2canvas(fichaElement, { scale: 2, backgroundColor: '#ffffff' });
+      
+      canvas.toBlob(async (blob) => {
+        if (!blob) {
+          showToast('Erro ao converter imagem.');
+          return;
+        }
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+        showToast('🖼️ Imagem PNG copiada!');
+      }, 'image/png');
+    } catch (err) {
+      showToast('Erro ao gerar imagem.');
+    }
+  }
+
+  async function copiarTextoReorientacao() {
+    const texto = document.getElementById('reorientRender').innerText;
+    try {
+      await navigator.clipboard.writeText(texto);
+      showToast('E-mail de reorientação copiado!');
+    } catch (err) {
+      showToast('Erro ao copiar e-mail.');
+    }
+  }
+
+  async function copiarTextoJustificativa() {
+    const texto = document.getElementById('justificativaRender').innerText;
+    try {
+      await navigator.clipboard.writeText(texto);
+      showToast('Justificativa copiada!');
+    } catch (err) {
+      showToast('Erro ao copiar justificativa.');
+    }
+  }
+
+  function salvarNoHistorico(rawText) {
+    const op = document.getElementById('fieldOperador').value || 'Operador não identificado';
+    const dt = document.getElementById('fieldDataRealizada').value || new Date().toLocaleDateString();
+    
+    let history = JSON.parse(localStorage.getItem('monitorias_history') || '[]');
+    
+    if (currentEditingId !== null) {
+      const index = history.findIndex(h => h.id === currentEditingId);
+      if (index !== -1) {
+        history[index] = { id: currentEditingId, operador: op, data: dt, text: rawText, tipo: modoAtual };
+        localStorage.setItem('monitorias_history', JSON.stringify(history));
+        carregarHistorico();
+        return;
+      }
+    }
+
+    const newId = Date.now();
+    currentEditingId = newId;
+    history.unshift({ id: newId, operador: op, data: dt, text: rawText, tipo: modoAtual });
+    if (history.length > 50) history.pop();
+    localStorage.setItem('monitorias_history', JSON.stringify(history));
+    carregarHistorico();
+  }
+
+  function carregarHistorico() {
+    const history = JSON.parse(localStorage.getItem('monitorias_history') || '[]');
+    const container = document.getElementById('historyContainer');
+    
+    // Atualiza o contador de realizadas no topo
+    document.getElementById('totalCounter').innerText = history.length;
+
+    if (history.length === 0) {
+      container.innerHTML = '<div style="padding:10px; color:#888; text-align:center;">Nenhum registro salvo no histórico.</div>';
+      return;
+    }
+
+    container.innerHTML = history.map(item => `
+      <div class="history-item">
+        <div>
+          <strong>${escapeHtml(item.operador)}</strong> 
+          <span style="color:var(--text-muted); font-size:11px;">(${escapeHtml(item.data)}) - <em>${item.tipo || 'MONITORIA'}</em></span>
+        </div>
+        <div style="display: flex; gap: 5px; align-items: center;">
+          <button class="btn btn-outline" style="padding:3px 6px; font-size:11px;" onclick="recarregarHistorico(${item.id})">Reabrir</button>
+          <button class="btn-remove-item" title="Excluir do Histórico" onclick="excluirItemHistorico(${item.id})">❌</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function recarregarHistorico(id) {
+    const history = JSON.parse(localStorage.getItem('monitorias_history') || '[]');
+    const item = history.find(h => h.id === id);
+    if (item) {
+      currentEditingId = item.id;
+      document.getElementById('rawInput').value = item.text;
+      if (item.tipo) setModo(item.tipo);
+      processarTexto();
+      showToast('Registro reaberto para edição.');
+    }
+  }
+
+  function excluirItemHistorico(id) {
+    let history = JSON.parse(localStorage.getItem('monitorias_history') || '[]');
+    history = history.filter(item => item.id !== id);
+    if (currentEditingId === id) currentEditingId = null;
+    localStorage.setItem('monitorias_history', JSON.stringify(history));
+    carregarHistorico();
+    showToast('Registro removido do histórico.');
+  }
+
+  function exportarExcel() {
+    const history = JSON.parse(localStorage.getItem('monitorias_history') || '[]');
+    if (history.length === 0) {
+      showToast('Nenhum histórico para exportar.');
+      return;
+    }
+
+    const dataRows = history.map(h => {
+      const raw = h.text || '';
+      const dataRealizadaMatch = raw.match(/(?:Data\s*)?Realizada:\s*(.*)/i);
+      const operadorMatch = raw.match(/Operador\(a\):\s*(.*)/i);
+      const dataHoraMatch = raw.match(/Data\/Hora:\s*(\d{2}\/\d{2}\/\d{4}(?:\s+\d{2}:\d{2}:\d{2})?)/i) || raw.match(/Data\/Hora:\s*([^\n\r]+)/i);
+      const protocoloMatch = raw.match(/Protocolo:\s*(\d+)/i) || raw.match(/Protocolo:\s*(.*)/i);
+      const aqmMatch = raw.match(/AQM:\s*(\d+)/i);
+      const monitoriaMatch = raw.match(/Monitoria:\s*(\d+)/i) || raw.match(/Nota:\s*(\d+)/i);
+      const moMatch = raw.match(/MO:\s*(\d+)/i) || raw.match(/MO:\s*(.*)/i);
+      const atendimentoMatch = raw.match(/(?:Registro de Atendimento|Atendimento)[\s\S]*?MO:\s*[^\n]*\n([\s\S]*?)(?=(?:Ocorrências|Observação|DESVIO):|$)/i);
+      const obsMatch = raw.match(/(?:Ocorrências|Observação|DESVIO):\s*([\s\S]*)/i);
+
+      return {
+        "Tipo": h.tipo || 'MONITORIA',
+        "Data Realizada": dataRealizadaMatch ? dataRealizadaMatch[1].trim() : h.data,
+        "Operador(a)": operadorMatch ? operadorMatch[1].trim() : h.operador,
+        "Data/Hora Atendimento": (dataHoraMatch && !dataHoraMatch[1].toLowerCase().includes('protocolo')) ? dataHoraMatch[1].trim() : '',
+        "Protocolo": protocoloMatch ? protocoloMatch[1].replace(/Protocolo:\s*/i, '').trim() : '',
+        "Nota Monitoria": monitoriaMatch ? monitoriaMatch[1].trim() : '',
+        "Nota AQM": aqmMatch ? aqmMatch[1].trim() : '',
+        "M.O.": moMatch ? moMatch[1].replace(/MO:\s*/i, '').trim() : '',
+        "Solicitação / Atendimento": atendimentoMatch ? atendimentoMatch[1].trim() : '',
+        "Observações / Desvios": obsMatch ? obsMatch[1].trim() : ''
+      };
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(dataRows);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Monitorias");
+
+    const max_width = dataRows.reduce((w, r) => {
+      return Object.keys(r).map((k, i) => Math.max(w[i] || 15, String(r[k]).length, k.length));
+    }, []);
+    worksheet['!cols'] = max_width.map(w => ({ wch: Math.min(w + 2, 50) }));
+
+    XLSX.writeFile(workbook, `Relatorio_Monitorias_${new Date().toISOString().slice(0,10)}.xlsx`);
+    showToast('Planilha Excel gerada com sucesso!');
+  }
+
+  function exportarHistorico() {
+    const history = JSON.parse(localStorage.getItem('monitorias_history') || '[]');
+    if (history.length === 0) {
+      showToast('Nenhum histórico para exportar.');
+      return;
+    }
+    
+    let content = "=== HISTÓRICO DE MONITORIAS E REORIENTAÇÕES ===\n\n";
+    history.forEach((h, index) => {
+      content += `--- REGISTRO #${index + 1} (${h.operador} - ${h.data}) ---\n`;
+      content += h.text + "\n\n";
+    });
+
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `historico_registros_${new Date().toISOString().slice(0,10)}.txt`;
+    a.click();
+  }
+
+  function limparHistorico() {
+    if (confirm('Deseja realmente apagar todo o histórico de registros?')) {
+      localStorage.removeItem('monitorias_history');
+      currentEditingId = null;
+      carregarHistorico();
+      showToast('Histórico apagado!');
+    }
+  }
+
+  function escapeHtml(text) {
+    return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.innerText = msg;
+    toast.style.display = 'block';
+    setTimeout(() => { toast.style.display = 'none'; }, 3000);
+  }
+
+  window.onload = function() {
+    const savedTheme = localStorage.getItem('theme_preference');
+    if (savedTheme === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      document.getElementById('themeToggle').innerText = '☀️ Modo Claro';
+    }
+    carregarHistorico();
+  };
+</script>
+
+</body>
+</html>
