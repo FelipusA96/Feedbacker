@@ -18,6 +18,8 @@
       --title-color: #1a237e;
       --input-bg: #ffffff;
       --history-hover: #f5f5f5;
+      --error-bg: #ffebee;
+      --error-border: #d32f2f;
     }
 
     [data-theme="dark"] {
@@ -29,6 +31,8 @@
       --title-color: #9fa8da;
       --input-bg: #2d2d2d;
       --history-hover: #2a2a2a;
+      --error-bg: #3c1a1d;
+      --error-border: #f44336;
     }
 
     * { box-sizing: border-box; transition: background-color 0.2s, color 0.2s; }
@@ -72,6 +76,13 @@
     
     textarea, input, select { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px; font-family: inherit; background-color: var(--input-bg); color: var(--text-color); }
     textarea:focus, input:focus, select:focus { border-color: var(--title-color); outline: none; }
+    
+    /* ESTILO DE CAMPO COM ERRO / INCOMPLETO */
+    .field-error {
+      border-color: var(--error-border) !important;
+      background-color: var(--error-bg) !important;
+    }
+
     .form-group { margin-bottom: 12px; }
     label { font-size: 12px; font-weight: bold; color: var(--text-muted); display: block; margin-bottom: 4px; text-transform: uppercase; }
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -181,20 +192,20 @@
         </div>
 
         <div class="form-row">
-          <div class="form-group"><label>Data Realizada</label><input type="text" id="fieldDataRealizada" spellcheck="true" oninput="atualizarInterface()"></div>
-          <div class="form-group"><label>Operador(a)</label><input type="text" id="fieldOperador" spellcheck="true" oninput="atualizarInterface()"></div>
+          <div class="form-group"><label>Data Realizada *</label><input type="text" id="fieldDataRealizada" spellcheck="true" oninput="validarECarregar()"></div>
+          <div class="form-group"><label>Operador(a) *</label><input type="text" id="fieldOperador" spellcheck="true" oninput="validarECarregar()"></div>
         </div>
         <div class="form-row">
-          <div class="form-group"><label>Data/Hora Atendimento</label><input type="text" id="fieldDataHora" spellcheck="true" oninput="atualizarInterface()"></div>
-          <div class="form-group"><label>Protocolo</label><input type="text" id="fieldProtocolo" spellcheck="true" oninput="atualizarInterface()"></div>
+          <div class="form-group"><label>Data/Hora Atendimento *</label><input type="text" id="fieldDataHora" spellcheck="true" oninput="validarECarregar()"></div>
+          <div class="form-group"><label>Protocolo *</label><input type="text" id="fieldProtocolo" spellcheck="true" oninput="validarECarregar()"></div>
         </div>
         <div class="form-row" id="rowNotas">
-          <div class="form-group"><label>Nota Monitoria</label><input type="text" id="fieldNotaMonitoria" spellcheck="true" oninput="atualizarInterface()"></div>
-          <div class="form-group"><label>Nota AQM</label><input type="text" id="fieldNotaAqm" spellcheck="true" oninput="atualizarInterface()"></div>
+          <div class="form-group"><label>Nota Monitoria</label><input type="text" id="fieldNotaMonitoria" spellcheck="true" oninput="validarECarregar()"></div>
+          <div class="form-group"><label>Nota AQM</label><input type="text" id="fieldNotaAqm" spellcheck="true" oninput="validarECarregar()"></div>
         </div>
-        <div class="form-group"><label>M.O.</label><input type="text" id="fieldMo" spellcheck="true" oninput="atualizarInterface()"></div>
-        <div class="form-group"><label>Atendimento / Solicitação</label><textarea id="fieldAtendimento" rows="3" spellcheck="true" oninput="atualizarInterface()"></textarea></div>
-        <div class="form-group"><label>Observações / Ocorrências Identificadas</label><textarea id="fieldObservacao" rows="3" spellcheck="true" oninput="atualizarInterface()"></textarea></div>
+        <div class="form-group"><label>M.O. *</label><input type="text" id="fieldMo" spellcheck="true" oninput="validarECarregar()"></div>
+        <div class="form-group"><label>Atendimento / Solicitação *</label><textarea id="fieldAtendimento" rows="3" spellcheck="true" oninput="validarECarregar()"></textarea></div>
+        <div class="form-group"><label>Observações / Ocorrências Identificadas *</label><textarea id="fieldObservacao" rows="3" spellcheck="true" oninput="validarECarregar()"></textarea></div>
       </div>
     </div>
 
@@ -295,6 +306,16 @@
   let modoAtual = 'MONITORIA';
   let currentEditingId = null;
 
+  const camposObrigatorios = [
+    'fieldDataRealizada',
+    'fieldOperador',
+    'fieldDataHora',
+    'fieldProtocolo',
+    'fieldMo',
+    'fieldAtendimento',
+    'fieldObservacao'
+  ];
+
   function toggleTheme() {
     const currentTheme = document.documentElement.getAttribute('data-theme');
     const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
@@ -317,20 +338,42 @@
     atualizarInterface();
   }
 
+  function limparErrosVisuais() {
+    camposObrigatorios.forEach(id => {
+      const elem = document.getElementById(id);
+      if (elem) elem.classList.remove('field-error');
+    });
+  }
+
   function limparRelatorioBruto() {
     currentEditingId = null;
     document.getElementById('rawInput').value = '';
-    document.getElementById('fieldDataRealizada').value = '';
-    document.getElementById('fieldOperador').value = '';
-    document.getElementById('fieldDataHora').value = '';
-    document.getElementById('fieldProtocolo').value = '';
-    document.getElementById('fieldNotaMonitoria').value = '';
-    document.getElementById('fieldNotaAqm').value = '';
-    document.getElementById('fieldMo').value = '';
-    document.getElementById('fieldAtendimento').value = '';
-    document.getElementById('fieldObservacao').value = '';
+    camposObrigatorios.concat(['fieldNotaMonitoria', 'fieldNotaAqm']).forEach(id => {
+      const elem = document.getElementById(id);
+      if (elem) elem.value = '';
+    });
+    limparErrosVisuais();
     atualizarInterface();
     showToast('Relatório bruto e campos limpos!');
+  }
+
+  function validarECarregar() {
+    limparErrosVisuais();
+    atualizarInterface();
+  }
+
+  function verificarCamposFaltantes() {
+    let faltantes = [];
+    camposObrigatorios.forEach(id => {
+      const elem = document.getElementById(id);
+      if (!elem || !elem.value.trim()) {
+        if (elem) elem.classList.add('field-error');
+        faltantes.push(id);
+      } else {
+        if (elem) elem.classList.remove('field-error');
+      }
+    });
+    return faltantes;
   }
 
   function processarTexto() {
@@ -339,6 +382,8 @@
       showToast('Por favor, cole algum texto primeiro.');
       return;
     }
+
+    limparErrosVisuais();
 
     const dataRealizadaMatch = raw.match(/(?:Data\s*)?Realizada:\s*(.*)/i);
     const operadorMatch = raw.match(/Operador\(a\):\s*(.*)/i);
@@ -352,13 +397,13 @@
                              raw.match(/(?:Registro de Atendimento|Atendimento)\s*\n([\s\S]*?)(?=(?:Ocorrências|Observação|DESVIO):|$)/i);
     const obsMatch = raw.match(/(?:Ocorrências|Observação|DESVIO):\s*([\s\S]*)/i);
 
-    if (dataRealizadaMatch) document.getElementById('fieldDataRealizada').value = dataRealizadaMatch[1].trim();
-    if (operadorMatch) document.getElementById('fieldOperador').value = operadorMatch[1].trim();
-    if (dataHoraMatch) document.getElementById('fieldDataHora').value = dataHoraMatch[1].trim();
-    if (protocoloMatch) document.getElementById('fieldProtocolo').value = protocoloMatch[1].trim();
-    if (aqmMatch) document.getElementById('fieldNotaAqm').value = aqmMatch[1].trim();
-    if (monitoriaMatch) document.getElementById('fieldNotaMonitoria').value = monitoriaMatch[1].trim();
-    if (moMatch) document.getElementById('fieldMo').value = moMatch[1].trim();
+    document.getElementById('fieldDataRealizada').value = dataRealizadaMatch ? dataRealizadaMatch[1].trim() : '';
+    document.getElementById('fieldOperador').value = operadorMatch ? operadorMatch[1].trim() : '';
+    document.getElementById('fieldDataHora').value = dataHoraMatch ? dataHoraMatch[1].trim() : '';
+    document.getElementById('fieldProtocolo').value = protocoloMatch ? protocoloMatch[1].trim() : '';
+    document.getElementById('fieldNotaAqm').value = aqmMatch ? aqmMatch[1].trim() : '';
+    document.getElementById('fieldNotaMonitoria').value = monitoriaMatch ? monitoriaMatch[1].trim() : '';
+    document.getElementById('fieldMo').value = moMatch ? moMatch[1].trim() : '';
 
     if (atendimentoMatch) {
       document.getElementById('fieldAtendimento').value = atendimentoMatch[1].trim();
@@ -366,12 +411,24 @@
       const fallback = raw.substring(raw.search(/Sr\.?ª?/i));
       const obsIdx = fallback.search(/(?:Ocorrências|Observação):/i);
       document.getElementById('fieldAtendimento').value = obsIdx !== -1 ? fallback.substring(0, obsIdx).trim() : fallback.trim();
+    } else {
+      document.getElementById('fieldAtendimento').value = '';
     }
 
-    if (obsMatch) document.getElementById('fieldObservacao').value = obsMatch[1].trim();
+    document.getElementById('fieldObservacao').value = obsMatch ? obsMatch[1].trim() : '';
 
     atualizarInterface();
+
+    // Executa a verificação dos campos
+    const camposFaltantes = verificarCamposFaltantes();
+
+    if (camposFaltantes.length > 0) {
+      showToast('⚠️ Informações incompletas! Preencha os campos em vermelho para salvar.');
+      return; // NÃO realiza o registro no Histórico Salvo Automático
+    }
+
     salvarNoHistorico(raw);
+    showToast('⚡ Dados processados e salvos com sucesso!');
   }
 
   function atualizarInterface() {
