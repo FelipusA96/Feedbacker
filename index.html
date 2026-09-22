@@ -35,8 +35,34 @@
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); margin: 0; padding: 20px; color: var(--text-color); }
     .app-container { max-width: 1200px; margin: 0 auto; }
     
-    .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
     .header-title { margin: 0; color: var(--title-color); font-weight: 700; font-size: 24px; }
+
+    /* BADGE DO CONTADOR */
+    .counter-badge {
+      background-color: #1a237e;
+      color: #ffffff;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: bold;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+    .counter-number {
+      background: #ffffff;
+      color: #1a237e;
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 800;
+    }
 
     .grid-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
     @media (max-width: 900px) { .grid-layout { grid-template-columns: 1fr; } }
@@ -100,7 +126,14 @@
 <div class="app-container">
   <div class="header-bar">
     <h2 class="header-title">📋 PAINEL DE MONITORIA & REORIENTAÇÃO</h2>
-    <button class="btn btn-outline" id="themeToggle" onclick="toggleTheme()">🌙 Modo Escuro</button>
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <!-- CONTADOR DE REGISTROS -->
+      <div class="counter-badge">
+        <span>Realizadas:</span>
+        <span id="totalCounter" class="counter-number">0</span>
+      </div>
+      <button class="btn btn-outline" id="themeToggle" onclick="toggleTheme()">🌙 Modo Escuro</button>
+    </div>
   </div>
 
   <!-- SELETOR DE MODO DE OPERAÇÃO -->
@@ -464,6 +497,9 @@ Qualquer dúvida estou a disposição!`;
     const history = JSON.parse(localStorage.getItem('monitorias_history') || '[]');
     const container = document.getElementById('historyContainer');
     
+    // Atualiza o contador de realizadas no topo
+    document.getElementById('totalCounter').innerText = history.length;
+
     if (history.length === 0) {
       container.innerHTML = '<div style="padding:10px; color:#888; text-align:center;">Nenhum registro salvo no histórico.</div>';
       return;
@@ -541,7 +577,6 @@ Qualquer dúvida estou a disposição!`;
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Monitorias");
 
-    // Ajusta a largura automática das colunas no Excel
     const max_width = dataRows.reduce((w, r) => {
       return Object.keys(r).map((k, i) => Math.max(w[i] || 15, String(r[k]).length, k.length));
     }, []);
