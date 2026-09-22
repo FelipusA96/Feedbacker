@@ -200,7 +200,7 @@
           <div class="form-group"><label>Protocolo *</label><input type="text" id="fieldProtocolo" spellcheck="true" oninput="validarECarregar()"></div>
         </div>
         <div class="form-row" id="rowNotas">
-          <div class="form-group"><label>Nota Monitoria</label><input type="text" id="fieldNotaMonitoria" spellcheck="true" oninput="validarECarregar()"></div>
+          <div class="form-group"><label>Nota Monitoria *</label><input type="text" id="fieldNotaMonitoria" spellcheck="true" oninput="validarECarregar()"></div>
           <div class="form-group"><label>Nota AQM</label><input type="text" id="fieldNotaAqm" spellcheck="true" oninput="validarECarregar()"></div>
         </div>
         <div class="form-group"><label>M.O. *</label><input type="text" id="fieldMo" spellcheck="true" oninput="validarECarregar()"></div>
@@ -306,11 +306,13 @@
   let modoAtual = 'MONITORIA';
   let currentEditingId = null;
 
+  // Adicionada Nota de Monitoria aos campos obrigatórios
   const camposObrigatorios = [
     'fieldDataRealizada',
     'fieldOperador',
     'fieldDataHora',
     'fieldProtocolo',
+    'fieldNotaMonitoria',
     'fieldMo',
     'fieldAtendimento',
     'fieldObservacao'
@@ -348,7 +350,7 @@
   function limparRelatorioBruto() {
     currentEditingId = null;
     document.getElementById('rawInput').value = '';
-    camposObrigatorios.concat(['fieldNotaMonitoria', 'fieldNotaAqm']).forEach(id => {
+    camposObrigatorios.concat(['fieldNotaAqm']).forEach(id => {
       const elem = document.getElementById(id);
       if (elem) elem.value = '';
     });
@@ -388,7 +390,6 @@
     const dataRealizadaMatch = raw.match(/(?:Data\s*)?Realizada:\s*(.*)/i);
     const operadorMatch = raw.match(/Operador\(a\):\s*(.*)/i);
     
-    // Captura estrita da Data/Hora do Atendimento (procura data DD/MM/AAAA)
     const dataHoraMatch = raw.match(/Data\/Hora:\s*(\d{2}\/\d{2}\/\d{4}(?:\s+\d{2}:\d{2}:\d{2})?)/i) || 
                           raw.match(/Data\/Hora:\s*([^\n\r]+)/i);
                           
@@ -404,7 +405,6 @@
     document.getElementById('fieldDataRealizada').value = dataRealizadaMatch ? dataRealizadaMatch[1].trim() : '';
     document.getElementById('fieldOperador').value = operadorMatch ? operadorMatch[1].trim() : '';
     
-    // Garante que o campo de Data/Hora não venha com a palavra Protocolo
     if (dataHoraMatch && !dataHoraMatch[1].toLowerCase().includes('protocolo')) {
       document.getElementById('fieldDataHora').value = dataHoraMatch[1].trim();
     } else {
@@ -430,7 +430,7 @@
 
     atualizarInterface();
 
-    // Executa a verificação dos campos
+    // Executa a verificação dos campos obrigatórios
     const camposFaltantes = verificarCamposFaltantes();
 
     if (camposFaltantes.length > 0) {
