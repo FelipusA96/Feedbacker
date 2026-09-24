@@ -172,7 +172,7 @@
       <div class="card">
         <div class="card-title">
           <span>1. Cole o Relatório Bruto</span>
-          <button class="btn btn-outline" style="padding: 3px 8px; font-size: 11px;" onclick="inserirMascaraFormatada()">📋 Inserir Máscara</button>
+          <button class="btn btn-outline" style="padding: 3px 8px; font-size: 11px;" onclick="copiarMascaraParaClipboard()">📋 Copiar Máscara</button>
         </div>
         <textarea id="rawInput" rows="8" spellcheck="true" placeholder="Cole aqui o texto da monitoria contendo Realizada, Operador, AQM, Monitoria, Registro de Atendimento, Ocorrências, etc..."></textarea>
         <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-top: 10px;">
@@ -370,7 +370,7 @@
     atualizarInterface();
   }
 
-  function inserirMascaraFormatada() {
+  async function copiarMascaraParaClipboard() {
     const dataHoje = getHojeDataFormatada();
     const mascara = `Realizada: ${dataHoje}
 Operador(a): 
@@ -383,9 +383,12 @@ MO:
 Sr.ª 
 Ocorrências:`;
 
-    document.getElementById('rawInput').value = mascara;
-    document.getElementById('fieldDataRealizada').value = dataHoje;
-    showToast('Máscara padrão inserida!');
+    try {
+      await navigator.clipboard.writeText(mascara);
+      showToast('📋 Máscara copiada para a área de transferência!');
+    } catch (err) {
+      showToast('Erro ao copiar máscara.');
+    }
   }
 
   function limparErrosVisuais() {
@@ -610,7 +613,6 @@ Qualquer dúvida estou a disposição!`;
     if (history.length > 100) history.pop();
     localStorage.setItem('monitorias_history', JSON.stringify(history));
     
-    // Seleciona a aba da data que foi salva
     activeDateTab = dt;
     carregarHistorico();
   }
@@ -626,7 +628,6 @@ Qualquer dúvida estou a disposição!`;
     const tabsContainer = document.getElementById('dateTabsContainer');
     const dataHoje = getHojeDataFormatada();
 
-    // Atualiza os contadores
     const countHoje = history.filter(item => item.data === dataHoje).length;
     document.getElementById('todayCounter').innerText = countHoje;
     document.getElementById('totalCounter').innerText = history.length;
@@ -637,10 +638,8 @@ Qualquer dúvida estou a disposição!`;
       return;
     }
 
-    // Extrai todas as datas únicas ordenadas
     const datasUnicas = [...new Set(history.map(item => item.data))];
 
-    // Monta as Abas por Data
     let tabsHtml = `<div class="date-tab ${activeDateTab === 'TODAS' ? 'active' : ''}" onclick="setDateTab('TODAS')">Todas (${history.length})</div>`;
     datasUnicas.forEach(dt => {
       const count = history.filter(item => item.data === dt).length;
@@ -649,7 +648,6 @@ Qualquer dúvida estou a disposição!`;
     });
     tabsContainer.innerHTML = tabsHtml;
 
-    // Filtra os itens com base na aba ativa
     const itensFiltrados = activeDateTab === 'TODAS' 
       ? history 
       : history.filter(item => item.data === activeDateTab);
@@ -701,7 +699,6 @@ Qualquer dúvida estou a disposição!`;
       return;
     }
 
-    // Exporta os itens da aba ativa
     const itensParaExportar = activeDateTab === 'TODAS' 
       ? history 
       : history.filter(item => item.data === activeDateTab);
@@ -796,7 +793,6 @@ Qualquer dúvida estou a disposição!`;
       document.getElementById('themeToggle').innerText = '☀️ Modo Claro';
     }
     
-    // Define a data de hoje no campo "Data Realizada" por padrão
     document.getElementById('fieldDataRealizada').value = getHojeDataFormatada();
     carregarHistorico();
   };
