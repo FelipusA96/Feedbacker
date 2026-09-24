@@ -20,8 +20,6 @@
       --history-hover: #f5f5f5;
       --error-bg: #ffebee;
       --error-border: #d32f2f;
-      --tab-active-bg: #1a237e;
-      --tab-active-color: #ffffff;
     }
 
     [data-theme="dark"] {
@@ -35,8 +33,6 @@
       --history-hover: #2a2a2a;
       --error-bg: #3c1a1d;
       --error-border: #f44336;
-      --tab-active-bg: #3949ab;
-      --tab-active-color: #ffffff;
     }
 
     * { box-sizing: border-box; transition: background-color 0.2s, color 0.2s; }
@@ -46,8 +42,8 @@
     .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
     .header-title { margin: 0; color: var(--title-color); font-weight: 700; font-size: 24px; }
 
-    /* BADGES DOS CONTADORES */
-    .counters-wrapper { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    /* CONTADORES DUPLOS */
+    .counters-container { display: flex; gap: 10px; align-items: center; }
     .counter-badge {
       background-color: #1a237e;
       color: #ffffff;
@@ -60,36 +56,30 @@
       gap: 6px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.15);
     }
-    .counter-badge.today {
-      background-color: #2e7d32;
-    }
+    .counter-badge.today { background-color: #2e7d32; }
     .counter-number {
       background: #ffffff;
-      color: #1a237e;
+      color: #333;
       border-radius: 50%;
-      min-width: 22px;
+      width: 22px;
       height: 22px;
-      padding: 0 4px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       font-size: 12px;
       font-weight: 800;
     }
-    .counter-badge.today .counter-number {
-      color: #2e7d32;
-    }
 
     .grid-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
     @media (max-width: 900px) { .grid-layout { grid-template-columns: 1fr; } }
     
     .card { background: var(--card-bg); padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin-bottom: 20px; }
-    .card-title { font-size: 16px; font-weight: bold; color: var(--title-color); margin-bottom: 15px; border-bottom: 2px solid var(--border-color); padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+    .card-title { font-size: 16px; font-weight: bold; color: var(--title-color); margin-bottom: 15px; border-bottom: 2px solid var(--border-color); padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
     
     textarea, input, select { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px; font-family: inherit; background-color: var(--input-bg); color: var(--text-color); }
     textarea:focus, input:focus, select:focus { border-color: var(--title-color); outline: none; }
     
-    /* ESTILO DE CAMPO COM ERRO / INCOMPLETO */
+    /* CAMPO COM ERRO / INCOMPLETO */
     .field-error {
       border-color: var(--error-border) !important;
       background-color: var(--error-bg) !important;
@@ -121,45 +111,10 @@
     .mode-btn { flex: 1; padding: 10px; border: 2px solid var(--title-color); background: var(--card-bg); color: var(--title-color); border-radius: 6px; font-weight: bold; cursor: pointer; text-align: center; }
     .mode-btn.active { background: #1a237e; color: #ffffff; }
 
-    /* ABAS DO HISTÓRICO */
-    .date-tabs-container {
-      display: flex;
-      gap: 6px;
-      overflow-x: auto;
-      padding-bottom: 8px;
-      margin-top: 10px;
-      border-bottom: 1px solid var(--border-color);
-      scrollbar-width: thin;
-    }
-    .date-tab-btn {
-      background: var(--input-bg);
-      color: var(--text-color);
-      border: 1px solid var(--border-color);
-      padding: 5px 12px;
-      border-radius: 16px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      white-space: nowrap;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .date-tab-btn:hover {
-      border-color: var(--title-color);
-    }
-    .date-tab-btn.active {
-      background: var(--tab-active-bg);
-      color: var(--tab-active-color);
-      border-color: var(--tab-active-bg);
-    }
-    .tab-count-tag {
-      font-size: 10px;
-      opacity: 0.85;
-      background: rgba(255,255,255,0.25);
-      border-radius: 10px;
-      padding: 1px 5px;
-    }
+    /* ABAS DO HISTÓRICO POR DATA */
+    .date-tabs-container { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 10px; border-bottom: 1px solid var(--border-color); }
+    .date-tab { padding: 5px 12px; font-size: 12px; font-weight: bold; border-radius: 15px; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-color); cursor: pointer; white-space: nowrap; }
+    .date-tab.active { background: var(--title-color); color: #ffffff; border-color: var(--title-color); }
 
     /* FICHA DA MONITORIA */
     .preview-container { background: var(--card-bg); padding: 25px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
@@ -178,7 +133,7 @@
     .output-box { background: #fdfbf7; border: 1px solid #e0b034; padding: 12px; border-radius: 6px; font-family: monospace; font-size: 13px; white-space: pre-wrap; line-height: 1.5; color: #222222; }
 
     /* HISTÓRICO */
-    .history-list { max-height: 250px; overflow-y: auto; margin-top: 10px; }
+    .history-list { max-height: 250px; overflow-y: auto; margin-top: 5px; }
     .history-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid var(--border-color); font-size: 13px; }
     .history-item:hover { background-color: var(--history-hover); }
     .toast { position: fixed; bottom: 20px; right: 20px; background: #323232; color: #fff; padding: 12px 24px; border-radius: 6px; font-size: 14px; display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 999; }
@@ -190,14 +145,14 @@
   <div class="header-bar">
     <h2 class="header-title">📋 PAINEL DE MONITORIA & REORIENTAÇÃO</h2>
     <div style="display: flex; align-items: center; gap: 12px;">
-      <!-- CONTADORES DUPLOS DE REGISTROS -->
-      <div class="counters-wrapper">
-        <div class="counter-badge today" title="Monitorias efetuadas na data atual">
+      <!-- CONTADORES DUPLOS -->
+      <div class="counters-container">
+        <div class="counter-badge today" title="Monitorias realizadas hoje">
           <span>Hoje:</span>
           <span id="todayCounter" class="counter-number">0</span>
         </div>
-        <div class="counter-badge" title="Total geral acumulado no histórico">
-          <span>Total Geral:</span>
+        <div class="counter-badge" title="Total acumulado no histórico">
+          <span>Total:</span>
           <span id="totalCounter" class="counter-number">0</span>
         </div>
       </div>
@@ -215,8 +170,11 @@
     <!-- COLUNA ESQUERDA: FORMULÁRIO -->
     <div>
       <div class="card">
-        <div class="card-title">1. Cole o Relatório Bruto</div>
-        <textarea id="rawInput" rows="7" spellcheck="true" placeholder="Cole aqui o texto da monitoria contendo Realizada, Operador, AQM, Monitoria, Registro de Atendimento, Ocorrências, etc..."></textarea>
+        <div class="card-title">
+          <span>1. Cole o Relatório Bruto</span>
+          <button class="btn btn-outline" style="padding: 3px 8px; font-size: 11px;" onclick="inserirMascaraFormatada()">📋 Inserir Máscara</button>
+        </div>
+        <textarea id="rawInput" rows="8" spellcheck="true" placeholder="Cole aqui o texto da monitoria contendo Realizada, Operador, AQM, Monitoria, Registro de Atendimento, Ocorrências, etc..."></textarea>
         <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-top: 10px;">
           <button class="btn btn-block" onclick="processarTexto()">⚡ Processar Dados</button>
           <button class="btn btn-outline" onclick="limparRelatorioBruto()">🗑️ Limpar</button>
@@ -353,10 +311,10 @@
           </div>
         </div>
 
-        <!-- ABAS POR DATA -->
+        <!-- RECIPIENTE DAS ABAS DE DATA -->
         <div id="dateTabsContainer" class="date-tabs-container"></div>
 
-        <!-- CONTEÚDO DAS MONITORIAS DA DATA SELECIONADA -->
+        <!-- LISTA DE ITENS DO HISTÓRICO -->
         <div id="historyContainer" class="history-list"></div>
       </div>
     </div>
@@ -368,7 +326,16 @@
 <script>
   let modoAtual = 'MONITORIA';
   let currentEditingId = null;
-  let selectedDateTab = 'TODAS'; // 'TODAS' ou Data específica DD/MM/AAAA
+  let activeDateTab = 'TODAS';
+
+  // Obter data atual no formato DD/MM/AAAA
+  function getHojeDataFormatada() {
+    const hoje = new Date();
+    const dia = String(hoje.getDate()).padStart(2, '0');
+    const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+    const ano = hoje.getFullYear();
+    return `${dia}/${mes}/${ano}`;
+  }
 
   const camposObrigatorios = [
     'fieldDataRealizada',
@@ -403,6 +370,24 @@
     atualizarInterface();
   }
 
+  function inserirMascaraFormatada() {
+    const dataHoje = getHojeDataFormatada();
+    const mascara = `Realizada: ${dataHoje}
+Operador(a): 
+Data/Hora: 
+Protocolo: 
+AQM: 
+Monitoria: 
+Registro de Atendimento
+MO: 
+Sr.ª 
+Ocorrências:`;
+
+    document.getElementById('rawInput').value = mascara;
+    document.getElementById('fieldDataRealizada').value = dataHoje;
+    showToast('Máscara padrão inserida!');
+  }
+
   function limparErrosVisuais() {
     camposObrigatorios.forEach(id => {
       const elem = document.getElementById(id);
@@ -417,6 +402,8 @@
       const elem = document.getElementById(id);
       if (elem) elem.value = '';
     });
+    // Reinsere a data de hoje por padrão
+    document.getElementById('fieldDataRealizada').value = getHojeDataFormatada();
     limparErrosVisuais();
     atualizarInterface();
     showToast('Relatório bruto e campos limpos!');
@@ -450,6 +437,7 @@
 
     limparErrosVisuais();
 
+    const dataHoje = getHojeDataFormatada();
     const dataRealizadaMatch = raw.match(/(?:Data\s*)?Realizada:\s*(.*)/i);
     const operadorMatch = raw.match(/Operador\(a\):\s*(.*)/i);
     
@@ -465,7 +453,8 @@
                              raw.match(/(?:Registro de Atendimento|Atendimento)\s*\n([\s\S]*?)(?=(?:Ocorrências|Observação|DESVIO):|$)/i);
     const obsMatch = raw.match(/(?:Ocorrências|Observação|DESVIO):\s*([\s\S]*)/i);
 
-    document.getElementById('fieldDataRealizada').value = dataRealizadaMatch ? dataRealizadaMatch[1].trim() : '';
+    // Usa a data extraída ou coloca a data atual automaticamente
+    document.getElementById('fieldDataRealizada').value = (dataRealizadaMatch && dataRealizadaMatch[1].trim()) ? dataRealizadaMatch[1].trim() : dataHoje;
     document.getElementById('fieldOperador').value = operadorMatch ? operadorMatch[1].trim() : '';
     
     if (dataHoraMatch && !dataHoraMatch[1].toLowerCase().includes('protocolo')) {
@@ -493,12 +482,11 @@
 
     atualizarInterface();
 
-    // Executa a verificação dos campos obrigatórios
     const camposFaltantes = verificarCamposFaltantes();
 
     if (camposFaltantes.length > 0) {
       showToast('⚠️ Informações incompletas! Preencha os campos em vermelho para salvar.');
-      return; // NÃO realiza o registro no Histórico Salvo Automático
+      return;
     }
 
     salvarNoHistorico(raw);
@@ -506,7 +494,7 @@
   }
 
   function atualizarInterface() {
-    const dataRealizada = document.getElementById('fieldDataRealizada').value || '---';
+    const dataRealizada = document.getElementById('fieldDataRealizada').value || getHojeDataFormatada();
     const operador = document.getElementById('fieldOperador').value || '---';
     const dataHora = document.getElementById('fieldDataHora').value || '---';
     const protocolo = document.getElementById('fieldProtocolo').value || '---';
@@ -600,17 +588,9 @@ Qualquer dúvida estou a disposição!`;
     }
   }
 
-  function formatarDataHoje() {
-    const hoje = new Date();
-    const dia = String(hoje.getDate()).padStart(2, '0');
-    const mes = String(hoje.getMonth() + 1).padStart(2, '0');
-    const ano = hoje.getFullYear();
-    return `${dia}/${mes}/${ano}`;
-  }
-
   function salvarNoHistorico(rawText) {
     const op = document.getElementById('fieldOperador').value || 'Operador não identificado';
-    const dt = document.getElementById('fieldDataRealizada').value || formatarDataHoje();
+    const dt = document.getElementById('fieldDataRealizada').value || getHojeDataFormatada();
     
     let history = JSON.parse(localStorage.getItem('monitorias_history') || '[]');
     
@@ -630,13 +610,13 @@ Qualquer dúvida estou a disposição!`;
     if (history.length > 100) history.pop();
     localStorage.setItem('monitorias_history', JSON.stringify(history));
     
-    // Altera automaticamente para a aba do dia inserido se for hoje
-    selectedDateTab = dt;
+    // Seleciona a aba da data que foi salva
+    activeDateTab = dt;
     carregarHistorico();
   }
 
-  function selecionarAbaData(data) {
-    selectedDateTab = data;
+  function setDateTab(dataTab) {
+    activeDateTab = dataTab;
     carregarHistorico();
   }
 
@@ -644,65 +624,42 @@ Qualquer dúvida estou a disposição!`;
     const history = JSON.parse(localStorage.getItem('monitorias_history') || '[]');
     const container = document.getElementById('historyContainer');
     const tabsContainer = document.getElementById('dateTabsContainer');
-    const hojeFormatted = formatarDataHoje();
+    const dataHoje = getHojeDataFormatada();
 
-    // 1. Atualizar os Contadores no Cabeçalho
-    document.getElementById('totalCounter').innerText = history.length;
-    
-    const countHoje = history.filter(item => item.data === hojeFormatted).length;
+    // Atualiza os contadores
+    const countHoje = history.filter(item => item.data === dataHoje).length;
     document.getElementById('todayCounter').innerText = countHoje;
+    document.getElementById('totalCounter').innerText = history.length;
 
     if (history.length === 0) {
       tabsContainer.innerHTML = '';
-      container.innerHTML = '<div style="padding:15px; color:#888; text-align:center;">Nenhum registro salvo no histórico.</div>';
+      container.innerHTML = '<div style="padding:10px; color:#888; text-align:center;">Nenhum registro salvo no histórico.</div>';
       return;
     }
 
-    // 2. Extrair lista única de datas ordenadas
-    const datasSet = new Set();
-    history.forEach(item => {
-      if (item.data) datasSet.add(item.data);
+    // Extrai todas as datas únicas ordenadas
+    const datasUnicas = [...new Set(history.map(item => item.data))];
+
+    // Monta as Abas por Data
+    let tabsHtml = `<div class="date-tab ${activeDateTab === 'TODAS' ? 'active' : ''}" onclick="setDateTab('TODAS')">Todas (${history.length})</div>`;
+    datasUnicas.forEach(dt => {
+      const count = history.filter(item => item.data === dt).length;
+      const label = dt === dataHoje ? `Hoje (${count})` : `${dt} (${count})`;
+      tabsHtml += `<div class="date-tab ${activeDateTab === dt ? 'active' : ''}" onclick="setDateTab('${dt}')">${label}</div>`;
     });
-    const datasArray = Array.from(datasSet);
+    tabsContainer.innerHTML = tabsHtml;
 
-    // Se a aba selecionada não existir mais no histórico, reseta para TODAS ou a primeira
-    if (selectedDateTab !== 'TODAS' && !datasSet.has(selectedDateTab)) {
-      selectedDateTab = 'TODAS';
-    }
-
-    // 3. Renderizar as Abas de Datas
-    let tabsHTML = `
-      <button class="date-tab-btn ${selectedDateTab === 'TODAS' ? 'active' : ''}" onclick="selecionarAbaData('TODAS')">
-        Todas <span class="tab-count-tag">${history.length}</span>
-      </button>
-    `;
-
-    datasArray.forEach(dt => {
-      const isHoje = (dt === hojeFormatted);
-      const countData = history.filter(item => item.data === dt).length;
-      const rotulo = isHoje ? `Hoje (${dt})` : dt;
-      
-      tabsHTML += `
-        <button class="date-tab-btn ${selectedDateTab === dt ? 'active' : ''}" onclick="selecionarAbaData('${dt}')">
-          ${rotulo} <span class="tab-count-tag">${countData}</span>
-        </button>
-      `;
-    });
-
-    tabsContainer.innerHTML = tabsHTML;
-
-    // 4. Filtrar Registros conforme a aba selecionada
-    const listaFiltrada = selectedDateTab === 'TODAS' 
+    // Filtra os itens com base na aba ativa
+    const itensFiltrados = activeDateTab === 'TODAS' 
       ? history 
-      : history.filter(item => item.data === selectedDateTab);
+      : history.filter(item => item.data === activeDateTab);
 
-    if (listaFiltrada.length === 0) {
-      container.innerHTML = '<div style="padding:15px; color:#888; text-align:center;">Nenhum registro encontrado para esta data.</div>';
+    if (itensFiltrados.length === 0) {
+      container.innerHTML = '<div style="padding:10px; color:#888; text-align:center;">Nenhum registro nesta data.</div>';
       return;
     }
 
-    // 5. Renderizar Lista de Registros do Histórico
-    container.innerHTML = listaFiltrada.map(item => `
+    container.innerHTML = itensFiltrados.map(item => `
       <div class="history-item">
         <div>
           <strong>${escapeHtml(item.operador)}</strong> 
@@ -744,12 +701,12 @@ Qualquer dúvida estou a disposição!`;
       return;
     }
 
-    // Exporta os itens da aba selecionada (ou todos se estiver na aba TODAS)
-    const registrosExportacao = selectedDateTab === 'TODAS'
-      ? history
-      : history.filter(item => item.data === selectedDateTab);
+    // Exporta os itens da aba ativa
+    const itensParaExportar = activeDateTab === 'TODAS' 
+      ? history 
+      : history.filter(item => item.data === activeDateTab);
 
-    const dataRows = registrosExportacao.map(h => {
+    const dataRows = itensParaExportar.map(h => {
       const raw = h.text || '';
       const dataRealizadaMatch = raw.match(/(?:Data\s*)?Realizada:\s*(.*)/i);
       const operadorMatch = raw.match(/Operador\(a\):\s*(.*)/i);
@@ -784,8 +741,7 @@ Qualquer dúvida estou a disposição!`;
     }, []);
     worksheet['!cols'] = max_width.map(w => ({ wch: Math.min(w + 2, 50) }));
 
-    const sufixo = selectedDateTab === 'TODAS' ? 'Geral' : selectedDateTab.replace(/\//g, '-');
-    XLSX.writeFile(workbook, `Relatorio_Monitorias_${sufixo}_${new Date().toISOString().slice(0,10)}.xlsx`);
+    XLSX.writeFile(workbook, `Relatorio_Monitorias_${new Date().toISOString().slice(0,10)}.xlsx`);
     showToast('Planilha Excel gerada com sucesso!');
   }
 
@@ -795,13 +751,13 @@ Qualquer dúvida estou a disposição!`;
       showToast('Nenhum histórico para exportar.');
       return;
     }
-    
-    const registrosExportacao = selectedDateTab === 'TODAS'
-      ? history
-      : history.filter(item => item.data === selectedDateTab);
 
-    let content = `=== HISTÓRICO DE MONITORIAS E REORIENTAÇÕES (${selectedDateTab}) ===\n\n`;
-    registrosExportacao.forEach((h, index) => {
+    const itensParaExportar = activeDateTab === 'TODAS' 
+      ? history 
+      : history.filter(item => item.data === activeDateTab);
+    
+    let content = "=== HISTÓRICO DE MONITORIAS E REORIENTAÇÕES ===\n\n";
+    itensParaExportar.forEach((h, index) => {
       content += `--- REGISTRO #${index + 1} (${h.operador} - ${h.data}) ---\n`;
       content += h.text + "\n\n";
     });
@@ -809,7 +765,7 @@ Qualquer dúvida estou a disposição!`;
     const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `historico_registros_${selectedDateTab === 'TODAS' ? 'geral' : selectedDateTab.replace(/\//g, '-')}.txt`;
+    a.download = `historico_registros_${new Date().toISOString().slice(0,10)}.txt`;
     a.click();
   }
 
@@ -817,7 +773,6 @@ Qualquer dúvida estou a disposição!`;
     if (confirm('Deseja realmente apagar todo o histórico de registros?')) {
       localStorage.removeItem('monitorias_history');
       currentEditingId = null;
-      selectedDateTab = 'TODAS';
       carregarHistorico();
       showToast('Histórico apagado!');
     }
@@ -840,6 +795,9 @@ Qualquer dúvida estou a disposição!`;
       document.documentElement.setAttribute('data-theme', 'dark');
       document.getElementById('themeToggle').innerText = '☀️ Modo Claro';
     }
+    
+    // Define a data de hoje no campo "Data Realizada" por padrão
+    document.getElementById('fieldDataRealizada').value = getHojeDataFormatada();
     carregarHistorico();
   };
 </script>
