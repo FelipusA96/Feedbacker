@@ -20,8 +20,6 @@
       --history-hover: #f5f5f5;
       --error-bg: #ffebee;
       --error-border: #d32f2f;
-      --tab-active-bg: #1a237e;
-      --tab-active-color: #ffffff;
     }
 
     [data-theme="dark"] {
@@ -35,8 +33,6 @@
       --history-hover: #2a2a2a;
       --error-bg: #3c1a1d;
       --error-border: #f44336;
-      --tab-active-bg: #3949ab;
-      --tab-active-color: #ffffff;
     }
 
     * { box-sizing: border-box; transition: background-color 0.2s, color 0.2s; }
@@ -65,9 +61,8 @@
       background: #ffffff;
       color: #333;
       border-radius: 50%;
-      min-width: 22px;
+      width: 22px;
       height: 22px;
-      padding: 0 4px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -179,7 +174,7 @@
           <span>1. Cole o Relatório Bruto</span>
           <button class="btn btn-outline" style="padding: 3px 8px; font-size: 11px;" onclick="copiarMascaraParaClipboard()">📋 Copiar Máscara</button>
         </div>
-        <textarea id="rawInput" rows="10" spellcheck="true" placeholder="Cole aqui o texto da monitoria contendo Realizada, Operador, AQM, Monitoria, Registro de Atendimento, MO, Observação(ões), Ocorrência(s)..."></textarea>
+        <textarea id="rawInput" rows="9" spellcheck="true" placeholder="Cole aqui o texto da monitoria contendo Realizada, Operador, AQM, Monitoria, Registro de Atendimento, Observação(ões), Ocorrência(s), etc..."></textarea>
         <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-top: 10px;">
           <button class="btn btn-block" onclick="processarTexto()">⚡ Processar Dados</button>
           <button class="btn btn-outline" onclick="limparRelatorioBruto()">🗑️ Limpar</button>
@@ -226,8 +221,8 @@
         </div>
         <div class="form-group"><label>M.O. *</label><input type="text" id="fieldMo" spellcheck="true" oninput="validarECarregar()"></div>
         <div class="form-group"><label>Atendimento / Solicitação *</label><textarea id="fieldAtendimento" rows="3" spellcheck="true" oninput="validarECarregar()"></textarea></div>
-        <div class="form-group"><label>Observação(ões)</label><textarea id="fieldObservacao" rows="2" spellcheck="true" oninput="validarECarregar()"></textarea></div>
-        <div class="form-group"><label>Ocorrência(s) *</label><textarea id="fieldOcorrencia" rows="3" spellcheck="true" oninput="validarECarregar()"></textarea></div>
+        <div class="form-group"><label>Observação(ões)</label><textarea id="fieldObservacao" rows="2" spellcheck="true" placeholder="-Não se aplica." oninput="validarECarregar()"></textarea></div>
+        <div class="form-group"><label>Ocorrência(s)</label><textarea id="fieldOcorrencia" rows="2" spellcheck="true" placeholder="-Não se aplica." oninput="validarECarregar()"></textarea></div>
       </div>
     </div>
 
@@ -280,10 +275,8 @@
             <tr>
               <td>
                 <p style="margin: 0 0 8px 0;"><strong>✨ Ponto Forte:</strong><br>Seu empenho reforça seu potencial. Com constância e foco, seus resultados serão cada vez maiores.</p>
-                <div id="wrapperObservacao" style="margin-bottom: 8px;">
-                  <p style="margin: 0;"><strong>💡 Observação(ões):</strong><br><span id="outObservacao">---</span></p>
-                </div>
-                <p style="margin: 0;"><strong>🔍 Ocorrência(s):</strong><br><span id="outOcorrencia">---</span></p>
+                <p style="margin: 0 0 8px 0;"><strong>💡 Observação(ões):</strong><br><span id="outObservacao">-Não se aplica.</span></p>
+                <p style="margin: 0;"><strong>🔍 Ocorrência(s):</strong><br><span id="outOcorrencia">-Não se aplica.</span></p>
               </td>
             </tr>
           </table>
@@ -346,7 +339,7 @@
     return `${dia}/${mes}/${ano}`;
   }
 
-  // Lista de campos obrigatórios para salvar no histórico
+  // Campos obrigatórios que precisam estar preenchidos para salvar no histórico
   const camposObrigatorios = [
     'fieldDataRealizada',
     'fieldOperador',
@@ -354,8 +347,7 @@
     'fieldProtocolo',
     'fieldNotaMonitoria',
     'fieldMo',
-    'fieldAtendimento',
-    'fieldOcorrencia'
+    'fieldAtendimento'
   ];
 
   function toggleTheme() {
@@ -403,7 +395,7 @@ Ocorrência(s):`;
   }
 
   function limparErrosVisuais() {
-    camposObrigatorios.concat(['fieldObservacao']).forEach(id => {
+    camposObrigatorios.forEach(id => {
       const elem = document.getElementById(id);
       if (elem) elem.classList.remove('field-error');
     });
@@ -412,11 +404,10 @@ Ocorrência(s):`;
   function limparRelatorioBruto() {
     currentEditingId = null;
     document.getElementById('rawInput').value = '';
-    camposObrigatorios.concat(['fieldNotaAqm', 'fieldObservacao']).forEach(id => {
+    camposObrigatorios.concat(['fieldNotaAqm', 'fieldObservacao', 'fieldOcorrencia']).forEach(id => {
       const elem = document.getElementById(id);
       if (elem) elem.value = '';
     });
-    // Reinsere a data de hoje por padrão
     document.getElementById('fieldDataRealizada').value = getHojeDataFormatada();
     limparErrosVisuais();
     atualizarInterface();
@@ -463,17 +454,15 @@ Ocorrência(s):`;
     const monitoriaMatch = raw.match(/Monitoria:\s*(\d+)/i) || raw.match(/Nota:\s*(\d+)/i);
     const moMatch = raw.match(/MO:\s*(\d+)/i) || raw.match(/MO:\s*(.*)/i);
 
-    // Extração do Atendimento / Solicitação
-    const atendimentoMatch = raw.match(/(?:Registro de Atendimento|Atendimento)[\s\S]*?MO:\s*[^\n]*\n([\s\S]*?)(?=(?:Observação\(ões\)|Observação|Ocorrência\(s\)|Ocorrências|DESVIO):|$)/i) || 
-                             raw.match(/(?:Registro de Atendimento|Atendimento)\s*\n([\s\S]*?)(?=(?:Observação\(ões\)|Observação|Ocorrência\(s\)|Ocorrências|DESVIO):|$)/i);
-
-    // Extração separada de Observações e Ocorrências
+    const atendimentoMatch = raw.match(/(?:Registro de Atendimento|Atendimento)[\s\S]*?MO:\s*[^\n]*\n([\s\S]*?)(?=(?:Observação\(ões\)|Ocorrência\(s\)|Observação|Ocorrências|DESVIO):|$)/i) || 
+                             raw.match(/(?:Registro de Atendimento|Atendimento)\s*\n([\s\S]*?)(?=(?:Observação\(ões\)|Ocorrência\(s\)|Observação|Ocorrências|DESVIO):|$)/i);
+    
     const obsMatch = raw.match(/Observação\(ões\):\s*([\s\S]*?)(?=(?:Ocorrência\(s\)|Ocorrências|DESVIO):|$)/i) ||
                      raw.match(/Observação:\s*([\s\S]*?)(?=(?:Ocorrência\(s\)|Ocorrências|DESVIO):|$)/i);
-
+                     
     const ocorrenciaMatch = raw.match(/Ocorrência\(s\):\s*([\s\S]*)/i) || 
                             raw.match(/Ocorrências:\s*([\s\S]*)/i) ||
-                            raw.match(/DESVIO:\s*([\s\S]*)/i);
+                            raw.match/DESVIO:\s*([\s\S]*)/i);
 
     document.getElementById('fieldDataRealizada').value = (dataRealizadaMatch && dataRealizadaMatch[1].trim()) ? dataRealizadaMatch[1].trim() : dataHoje;
     document.getElementById('fieldOperador').value = operadorMatch ? operadorMatch[1].trim() : '';
@@ -493,14 +482,14 @@ Ocorrência(s):`;
       document.getElementById('fieldAtendimento').value = atendimentoMatch[1].trim();
     } else if (raw.includes("Sr.ª") || raw.includes("Sra.")) {
       const fallback = raw.substring(raw.search(/Sr\.?ª?/i));
-      const obsIdx = fallback.search(/(?:Observação\(ões\)|Observação|Ocorrência\(s\)|Ocorrências):/i);
+      const obsIdx = fallback.search(/(?:Observação\(ões\)|Ocorrência\(s\)|Observação|Ocorrências):/i);
       document.getElementById('fieldAtendimento').value = obsIdx !== -1 ? fallback.substring(0, obsIdx).trim() : fallback.trim();
     } else {
       document.getElementById('fieldAtendimento').value = '';
     }
 
-    document.getElementById('fieldObservacao').value = obsMatch ? obsMatch[1].trim() : '';
-    document.getElementById('fieldOcorrencia').value = ocorrenciaMatch ? ocorrenciaMatch[1].trim() : '';
+    document.getElementById('fieldObservacao').value = (obsMatch && obsMatch[1].trim()) ? obsMatch[1].trim() : '';
+    document.getElementById('fieldOcorrencia').value = (ocorrenciaMatch && ocorrenciaMatch[1].trim()) ? ocorrenciaMatch[1].trim() : '';
 
     atualizarInterface();
 
@@ -524,8 +513,14 @@ Ocorrência(s):`;
     const notaAqm = document.getElementById('fieldNotaAqm').value || '--';
     const mo = document.getElementById('fieldMo').value || '---';
     const atendimento = document.getElementById('fieldAtendimento').value || '---';
-    const observacao = document.getElementById('fieldObservacao').value.trim();
-    const ocorrencia = document.getElementById('fieldOcorrencia').value || '---';
+    
+    // Tratamento para preencher com "-Não se aplica." quando em branco
+    const obsInput = document.getElementById('fieldObservacao').value.trim();
+    const ocorrenciaInput = document.getElementById('fieldOcorrencia').value.trim();
+
+    const observacao = obsInput !== '' ? obsInput : '-Não se aplica.';
+    const ocorrencia = ocorrenciaInput !== '' ? ocorrenciaInput : '-Não se aplica.';
+
     const supervisor = document.getElementById('fieldSupervisor').value;
     const saudacao = document.getElementById('fieldSaudacao').value;
 
@@ -537,30 +532,18 @@ Ocorrência(s):`;
     document.getElementById('outNotaAqm').innerText = notaAqm;
     document.getElementById('outMo').innerText = mo;
     document.getElementById('outAtendimento').innerText = atendimento;
-    
-    // Atualização da Visual Sheet com Observação e Ocorrência separadas
-    const wrapperObs = document.getElementById('wrapperObservacao');
-    if (observacao) {
-      wrapperObs.style.display = 'block';
-      document.getElementById('outObservacao').innerText = observacao;
-    } else {
-      wrapperObs.style.display = 'none';
-    }
+    document.getElementById('outObservacao').innerText = observacao;
     document.getElementById('outOcorrencia').innerText = ocorrencia;
 
-    // Atualização da Justificativa Rápida
-    let textoJustificativa = `Data/Hora: ${dataHora}`;
-    if (observacao) {
-      textoJustificativa += `\nObservação: ${observacao}`;
+    // Ajusta o texto da Justificativa Rápida
+    let detalheOcorrencia = ocorrencia;
+    if (observacao !== '-Não se aplica.' && ocorrencia !== '-Não se aplica.') {
+      detalheOcorrencia = `Obs: ${observacao}\nDesvio: ${ocorrencia}`;
+    } else if (observacao !== '-Não se aplica.') {
+      detalheOcorrencia = observacao;
     }
-    textoJustificativa += `\nOcorrência:\n${ocorrencia}`;
-    document.getElementById('justificativaRender').innerText = textoJustificativa;
 
-    // Atualização do E-mail de Reorientação
-    let textoDesvio = ocorrencia;
-    if (observacao) {
-      textoDesvio = `OBSERVAÇÕES:\n${observacao}\n\nOCORRÊNCIAS:\n${ocorrencia}`;
-    }
+    document.getElementById('justificativaRender').innerText = `Data/Hora: ${dataHora}\nOBS:\n${detalheOcorrencia}`;
 
     const textoEmail = `${saudacao}, ${supervisor}
 
@@ -573,8 +556,11 @@ Operador(a): ${operador}
 SOLICITAÇÃO:
 ${atendimento}
 
-DESVIO:
-${textoDesvio}
+OBSERVAÇÃO(ÕES):
+${observacao}
+
+DESVIO / OCORRÊNCIA(S):
+${ocorrencia}
 
 Qualquer dúvida estou a disposição!`;
 
@@ -753,9 +739,14 @@ Qualquer dúvida estou a disposição!`;
       const aqmMatch = raw.match(/AQM:\s*(\d+)/i);
       const monitoriaMatch = raw.match(/Monitoria:\s*(\d+)/i) || raw.match(/Nota:\s*(\d+)/i);
       const moMatch = raw.match(/MO:\s*(\d+)/i) || raw.match(/MO:\s*(.*)/i);
-      const atendimentoMatch = raw.match(/(?:Registro de Atendimento|Atendimento)[\s\S]*?MO:\s*[^\n]*\n([\s\S]*?)(?=(?:Observação\(ões\)|Observação|Ocorrência\(s\)|Ocorrências|DESVIO):|$)/i);
-      const obsMatch = raw.match(/Observação\(ões\):\s*([\s\S]*?)(?=(?:Ocorrência\(s\)|Ocorrências|DESVIO):|$)/i) || raw.match(/Observação:\s*([\s\S]*?)(?=(?:Ocorrência\(s\)|Ocorrências|DESVIO):|$)/i);
-      const ocorrenciaMatch = raw.match(/Ocorrência\(s\):\s*([\s\S]*)/i) || raw.match(/Ocorrências:\s*([\s\S]*)/i) || raw.match(/DESVIO:\s*([\s\S]*)/i);
+      const atendimentoMatch = raw.match(/(?:Registro de Atendimento|Atendimento)[\s\S]*?MO:\s*[^\n]*\n([\s\S]*?)(?=(?:Observação\(ões\)|Ocorrência\(s\)|Observação|Ocorrências|DESVIO):|$)/i);
+      
+      const obsMatch = raw.match(/Observação\(ões\):\s*([\s\S]*?)(?=(?:Ocorrência\(s\)|Ocorrências|DESVIO):|$)/i) ||
+                       raw.match(/Observação:\s*([\s\S]*?)(?=(?:Ocorrência\(s\)|Ocorrências|DESVIO):|$)/i);
+                       
+      const ocorrenciaMatch = raw.match(/Ocorrência\(s\):\s*([\s\S]*)/i) || 
+                              raw.match(/Ocorrências:\s*([\s\S]*)/i) ||
+                              raw.match/DESVIO:\s*([\s\S]*)/i);
 
       return {
         "Tipo": h.tipo || 'MONITORIA',
@@ -767,8 +758,8 @@ Qualquer dúvida estou a disposição!`;
         "Nota AQM": aqmMatch ? aqmMatch[1].trim() : '',
         "M.O.": moMatch ? moMatch[1].replace(/MO:\s*/i, '').trim() : '',
         "Solicitação / Atendimento": atendimentoMatch ? atendimentoMatch[1].trim() : '',
-        "Observação(ões)": obsMatch ? obsMatch[1].trim() : '',
-        "Ocorrência(s)": ocorrenciaMatch ? ocorrenciaMatch[1].trim() : ''
+        "Observação(ões)": (obsMatch && obsMatch[1].trim()) ? obsMatch[1].trim() : '-Não se aplica.',
+        "Ocorrência(s)": (ocorrenciaMatch && ocorrenciaMatch[1].trim()) ? ocorrenciaMatch[1].trim() : '-Não se aplica.'
       };
     });
 
