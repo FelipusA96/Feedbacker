@@ -462,7 +462,7 @@ Ocorrência(s):`;
                      
     const ocorrenciaMatch = raw.match(/Ocorrência\(s\):\s*([\s\S]*)/i) || 
                             raw.match(/Ocorrências:\s*([\s\S]*)/i) ||
-                            raw.match/DESVIO:\s*([\s\S]*)/i);
+                            raw.match(/DESVIO:\s*([\s\S]*)/i);
 
     document.getElementById('fieldDataRealizada').value = (dataRealizadaMatch && dataRealizadaMatch[1].trim()) ? dataRealizadaMatch[1].trim() : dataHoje;
     document.getElementById('fieldOperador').value = operadorMatch ? operadorMatch[1].trim() : '';
@@ -514,7 +514,6 @@ Ocorrência(s):`;
     const mo = document.getElementById('fieldMo').value || '---';
     const atendimento = document.getElementById('fieldAtendimento').value || '---';
     
-    // Tratamento para preencher com "-Não se aplica." quando em branco
     const obsInput = document.getElementById('fieldObservacao').value.trim();
     const ocorrenciaInput = document.getElementById('fieldOcorrencia').value.trim();
 
@@ -535,7 +534,6 @@ Ocorrência(s):`;
     document.getElementById('outObservacao').innerText = observacao;
     document.getElementById('outOcorrencia').innerText = ocorrencia;
 
-    // Ajusta o texto da Justificativa Rápida
     let detalheOcorrencia = ocorrencia;
     if (observacao !== '-Não se aplica.' && ocorrencia !== '-Não se aplica.') {
       detalheOcorrencia = `Obs: ${observacao}\nDesvio: ${ocorrencia}`;
@@ -746,7 +744,7 @@ Qualquer dúvida estou a disposição!`;
                        
       const ocorrenciaMatch = raw.match(/Ocorrência\(s\):\s*([\s\S]*)/i) || 
                               raw.match(/Ocorrências:\s*([\s\S]*)/i) ||
-                              raw.match/DESVIO:\s*([\s\S]*)/i);
+                              raw.match(/DESVIO:\s*([\s\S]*)/i);
 
       return {
         "Tipo": h.tipo || 'MONITORIA',
