@@ -20,6 +20,8 @@
       --history-hover: #f5f5f5;
       --error-bg: #ffebee;
       --error-border: #d32f2f;
+      --fab-bg: #1a237e;
+      --fab-color: #ffffff;
     }
 
     [data-theme="dark"] {
@@ -33,9 +35,12 @@
       --history-hover: #2a2a2a;
       --error-bg: #3c1a1d;
       --error-border: #f44336;
+      --fab-bg: #3949ab;
+      --fab-color: #ffffff;
     }
 
     * { box-sizing: border-box; transition: background-color 0.2s, color 0.2s; }
+    html { scroll-behavior: smooth; }
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); margin: 0; padding: 20px; color: var(--text-color); }
     .app-container { max-width: 1200px; margin: 0 auto; }
     
@@ -137,6 +142,41 @@
     .history-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid var(--border-color); font-size: 13px; }
     .history-item:hover { background-color: var(--history-hover); }
     .toast { position: fixed; bottom: 20px; right: 20px; background: #323232; color: #fff; padding: 12px 24px; border-radius: 6px; font-size: 14px; display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 999; }
+
+    /* BOTÃO FLUTUANTE SUBIR AO TOPO */
+    .btn-scroll-top {
+      position: fixed;
+      bottom: 25px;
+      right: 25px;
+      width: 46px;
+      height: 46px;
+      background-color: var(--fab-bg);
+      color: var(--fab-color);
+      border: none;
+      border-radius: 50%;
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.2s ease, background-color 0.2s ease;
+      z-index: 1000;
+    }
+    .btn-scroll-top.visible {
+      opacity: 0.9;
+      visibility: visible;
+    }
+    .btn-scroll-top:hover {
+      opacity: 1;
+      transform: translateY(-3px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    }
+    .btn-scroll-top:active {
+      transform: translateY(0);
+    }
   </style>
 </head>
 <body>
@@ -324,6 +364,9 @@
 </div>
 
 <div id="toast" class="toast">Texto copiado com sucesso!</div>
+
+<!-- BOTÃO FLUTUANTE VOLTAR AO TOPO -->
+<button id="btnScrollTop" class="btn-scroll-top" onclick="subirAoTopo()" title="Voltar ao Topo" aria-label="Voltar ao Topo">⬆️</button>
 
 <script>
   let modoAtual = 'MONITORIA';
@@ -822,6 +865,24 @@ Qualquer dúvida estou a disposição!`;
     toast.style.display = 'block';
     setTimeout(() => { toast.style.display = 'none'; }, 3000);
   }
+
+  // Função para rolar até o topo da página suavemente
+  function subirAoTopo() {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  }
+
+  // Controla a visibilidade do botão flutuante baseado no scroll da página
+  window.addEventListener('scroll', function() {
+    const btnScrollTop = document.getElementById('btnScrollTop');
+    if (window.scrollY > 200) {
+      btnScrollTop.classList.add('visible');
+    } else {
+      btnScrollTop.classList.remove('visible');
+    }
+  });
 
   window.onload = function() {
     const savedTheme = localStorage.getItem('theme_preference');
