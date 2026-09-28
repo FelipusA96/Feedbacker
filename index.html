@@ -450,8 +450,11 @@ Ocorrência(s):`;
                           raw.match(/Data\/Hora:\s*([^\n\r]+)/i);
                           
     const protocoloMatch = raw.match(/Protocolo:\s*(\d+)/i) || raw.match(/Protocolo:\s*(.*)/i);
-    const aqmMatch = raw.match(/AQM:\s*(\d+)/i);
-    const monitoriaMatch = raw.match(/Monitoria:\s*(\d+)/i) || raw.match(/Nota:\s*(\d+)/i);
+    
+    // RegEx ajustada para aceitar inteiros e decimais (com ponto ou vírgula)
+    const aqmMatch = raw.match(/AQM:\s*(\d+(?:[.,]\d+)?)/i);
+    const monitoriaMatch = raw.match(/Monitoria:\s*(\d+(?:[.,]\d+)?)/i) || raw.match(/Nota:\s*(\d+(?:[.,]\d+)?)/i);
+    
     const moMatch = raw.match(/MO:\s*(\d+)/i) || raw.match(/MO:\s*(.*)/i);
 
     const atendimentoMatch = raw.match(/(?:Registro de Atendimento|Atendimento)[\s\S]*?MO:\s*[^\n]*\n([\s\S]*?)(?=(?:Observação\(ões\)|Ocorrência\(s\)|Observação|Ocorrências|DESVIO):|$)/i) || 
@@ -734,8 +737,10 @@ Qualquer dúvida estou a disposição!`;
       const operadorMatch = raw.match(/Operador\(a\):\s*(.*)/i);
       const dataHoraMatch = raw.match(/Data\/Hora:\s*(\d{2}\/\d{2}\/\d{4}(?:\s+\d{2}:\d{2}:\d{2})?)/i) || raw.match(/Data\/Hora:\s*([^\n\r]+)/i);
       const protocoloMatch = raw.match(/Protocolo:\s*(\d+)/i) || raw.match(/Protocolo:\s*(.*)/i);
-      const aqmMatch = raw.match(/AQM:\s*(\d+)/i);
-      const monitoriaMatch = raw.match(/Monitoria:\s*(\d+)/i) || raw.match(/Nota:\s*(\d+)/i);
+      
+      const aqmMatch = raw.match(/AQM:\s*(\d+(?:[.,]\d+)?)/i);
+      const monitoriaMatch = raw.match(/Monitoria:\s*(\d+(?:[.,]\d+)?)/i) || raw.match(/Nota:\s*(\d+(?:[.,]\d+)?)/i);
+      
       const moMatch = raw.match(/MO:\s*(\d+)/i) || raw.match(/MO:\s*(.*)/i);
       const atendimentoMatch = raw.match(/(?:Registro de Atendimento|Atendimento)[\s\S]*?MO:\s*[^\n]*\n([\s\S]*?)(?=(?:Observação\(ões\)|Ocorrência\(s\)|Observação|Ocorrências|DESVIO):|$)/i);
       
