@@ -361,8 +361,9 @@
 <!-- TEMPLATE DE ELEMENTO DO CHECKLIST GUIADO -->
 <div id="checklistTemplate" style="display: none;">
   <div class="checklist-container">
-    <div style="font-weight:bold; margin-bottom:12px; color:#1a237e; font-size:15px; border-bottom:2px solid #1a237e; padding-bottom:6px;">
-      📝 Checklist de Monitoria (Pop-up)
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 2px solid #1a237e; padding-bottom: 6px;">
+      <span style="font-weight:bold; color:#1a237e; font-size:15px;">📝 Checklist de Monitoria</span>
+      <button id="btnPopLimparCampos" style="width: auto; margin: 0; padding: 4px 10px; font-size: 11px; background: #c62828;">🗑️ Limpar Campos</button>
     </div>
     
     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
@@ -434,7 +435,7 @@
 
   /* LÓGICA DE ABRIR POP-UP TRADICIONAL NATIVO DO SISTEMA */
   function abrirPopOutWindow() {
-    const popWin = window.open("", "ChecklistPopout", "width=430,height=620,resizable=yes,scrollbars=yes");
+    const popWin = window.open("", "ChecklistPopout", "width=450,height=650,resizable=yes,scrollbars=yes");
     if (!popWin) {
       showToast("⚠️ Permita pop-ups no seu navegador para abrir a janela.");
       return;
@@ -496,7 +497,7 @@
     `);
     popWin.document.close();
 
-    // Transfere valores atuais e configura botão de envio
+    // Transfere valores atuais e configura botões
     setTimeout(() => {
       popWin.document.getElementById('popDataRealizada').value = document.getElementById('fieldDataRealizada').value || getHojeDataFormatada();
       popWin.document.getElementById('popOperador').value = document.getElementById('fieldOperador').value;
@@ -509,10 +510,29 @@
       popWin.document.getElementById('popObservacao').value = document.getElementById('fieldObservacao').value;
       popWin.document.getElementById('popOcorrencia').value = document.getElementById('fieldOcorrencia').value;
 
+      // Botão Limpar Campos
+      popWin.document.getElementById('btnPopLimparCampos').onclick = function() {
+        limparCamposPopout(popWin.document);
+      };
+
+      // Botão Enviar
       popWin.document.getElementById('btnEnviarPopout').onclick = function() {
         enviarDadosDoPopout(popWin.document);
       };
     }, 150);
+  }
+
+  function limparCamposPopout(docContext) {
+    docContext.getElementById('popDataRealizada').value = getHojeDataFormatada();
+    docContext.getElementById('popOperador').value = '';
+    docContext.getElementById('popDataHora').value = '';
+    docContext.getElementById('popProtocolo').value = '';
+    docContext.getElementById('popNotaMonitoria').value = '';
+    docContext.getElementById('popNotaAqm').value = '';
+    docContext.getElementById('popMo').value = '';
+    docContext.getElementById('popAtendimento').value = '';
+    docContext.getElementById('popObservacao').value = '';
+    docContext.getElementById('popOcorrencia').value = '';
   }
 
   function enviarDadosDoPopout(docContext) {
@@ -563,6 +583,9 @@ Ocorrência(s): ${ocor}`;
 
     salvarNoHistorico(rawFormatado);
     showToast('🚀 Ficha gerada via Pop-up com sucesso!');
+    
+    // Limpa automaticamente os campos da janela pop-up para a próxima inserção
+    limparCamposPopout(docContext);
   }
 
   /* BOTÃO SCROLL TO TOP */
