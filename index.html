@@ -166,7 +166,7 @@
     /* ESTILOS DO CONTAINER DO CHECKLIST */
     .checklist-container {
       background: var(--card-bg);
-      padding: 15px;
+      padding: 12px;
       border-radius: 8px;
     }
   </style>
@@ -205,14 +205,14 @@
         <div class="card-title">
           <span>1. Cole o Relatório Bruto</span>
           <div style="display: flex; gap: 6px;">
-            <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px;" onclick="abrirPopOutWindow()">🪟 Destacar Pop-out</button>
+            <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px;" onclick="abrirPopOutWindow()">🪟 Pop-up Tradicional</button>
             <button class="btn btn-outline" style="padding: 3px 8px; font-size: 11px;" onclick="copiarMascaraParaClipboard()">📋 Copiar Máscara</button>
           </div>
         </div>
         <textarea id="rawInput" rows="9" spellcheck="true" placeholder="Cole aqui o texto da monitoria contendo Realizada, Operador, AQM, Monitoria, Registro de Atendimento, Observação(ões), Ocorrência(s), etc..."></textarea>
         <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-top: 10px;">
           <button class="btn btn-block" onclick="processarTexto()">⚡ Processar Dados</button>
-          <button class="btn btn-outline" onclick="limparRelatorioBruto()">🗑️️ Limpar</button>
+          <button class="btn btn-outline" onclick="limparRelatorioBruto()">🗑️ Limpar</button>
         </div>
       </div>
 
@@ -361,7 +361,9 @@
 <!-- TEMPLATE DE ELEMENTO DO CHECKLIST GUIADO -->
 <div id="checklistTemplate" style="display: none;">
   <div class="checklist-container">
-    <div style="font-weight:bold; margin-bottom:12px; color:var(--title-color); font-size:15px;">📝 Checklist de Monitoria (Pop-out)</div>
+    <div style="font-weight:bold; margin-bottom:12px; color:#1a237e; font-size:15px; border-bottom:2px solid #1a237e; padding-bottom:6px;">
+      📝 Checklist de Monitoria (Pop-up)
+    </div>
     
     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
       <div><label style="font-size:11px; font-weight:bold; display:block;">DATA REALIZADA</label><input type="text" id="popDataRealizada" style="width:100%; padding:6px; font-size:12px;"></div>
@@ -411,7 +413,6 @@
   let modoAtual = 'MONITORIA';
   let currentEditingId = null;
   let activeDateTab = 'TODAS';
-  let pipWindow = null;
 
   function getHojeDataFormatada() {
     const hoje = new Date();
@@ -431,71 +432,61 @@
     'fieldAtendimento'
   ];
 
-  /* LÓGICA DE DESTACAR JANELA NATIVA (DOCUMENT PIP OU JANELA POPUP SEPARADA) */
-  async function abrirPopOutWindow() {
-    if ('documentPictureInPicture' in window) {
-      try {
-        pipWindow = await window.documentPictureInPicture.requestWindow({
-          width: 420,
-          height: 600
-        });
-
-        [...document.styleSheets].forEach((styleSheet) => {
-          try {
-            const cssRules = [...styleSheet.cssRules].map((rule) => rule.cssText).join('');
-            const style = document.createElement('style');
-            style.textContent = cssRules;
-            pipWindow.document.head.appendChild(style);
-          } catch (e) {
-            const link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.type = styleSheet.type;
-            link.href = styleSheet.href;
-            pipWindow.document.head.appendChild(link);
-          }
-        });
-
-        pipWindow.document.body.innerHTML = document.getElementById('checklistTemplate').innerHTML;
-        pipWindow.document.body.style.padding = '10px';
-        pipWindow.document.body.style.backgroundColor = getComputedStyle(document.body).backgroundColor;
-
-        pipWindow.document.getElementById('popDataRealizada').value = document.getElementById('fieldDataRealizada').value || getHojeDataFormatada();
-        pipWindow.document.getElementById('popOperador').value = document.getElementById('fieldOperador').value;
-        pipWindow.document.getElementById('popDataHora').value = document.getElementById('fieldDataHora').value;
-        pipWindow.document.getElementById('popProtocolo').value = document.getElementById('fieldProtocolo').value;
-        pipWindow.document.getElementById('popNotaMonitoria').value = document.getElementById('fieldNotaMonitoria').value;
-        pipWindow.document.getElementById('popNotaAqm').value = document.getElementById('fieldNotaAqm').value;
-        pipWindow.document.getElementById('popMo').value = document.getElementById('fieldMo').value;
-        pipWindow.document.getElementById('popAtendimento').value = document.getElementById('fieldAtendimento').value;
-        pipWindow.document.getElementById('popObservacao').value = document.getElementById('fieldObservacao').value;
-        pipWindow.document.getElementById('popOcorrencia').value = document.getElementById('fieldOcorrencia').value;
-
-        pipWindow.document.getElementById('btnEnviarPopout').addEventListener('click', () => {
-          enviarDadosDoPopout(pipWindow.document);
-        });
-
-        return;
-      } catch (err) {
-        console.warn("Falha no Document PiP, utilizando fallback de Janela Popup:", err);
-      }
-    }
-
-    const popWin = window.open("", "ChecklistPopout", "width=420,height=600,resizable=yes,scrollbars=yes,alwaysOnTop=yes");
+  /* LÓGICA DE ABRIR POP-UP TRADICIONAL NATIVO DO SISTEMA */
+  function abrirPopOutWindow() {
+    const popWin = window.open("", "ChecklistPopout", "width=430,height=620,resizable=yes,scrollbars=yes");
     if (!popWin) {
-      showToast("⚠️ Permita pop-ups no navegador para abrir a janela destacada.");
+      showToast("⚠️ Permita pop-ups no seu navegador para abrir a janela.");
       return;
     }
 
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
     popWin.document.write(`
       <!DOCTYPE html>
-      <html>
+      <html lang="pt-BR">
       <head>
-        <title>Checklist Pop-out</title>
+        <meta charset="UTF-8">
+        <title>Checklist - Monitoria</title>
         <style>
-          body { font-family: sans-serif; padding: 10px; background: #f0f2f5; color: #333; }
-          input, textarea { width: 100%; padding: 6px; font-size: 12px; margin-top: 2px; box-sizing: border-box; }
-          label { font-size: 11px; font-weight: bold; margin-top: 6px; display: block; }
-          button { width: 100%; background: #2e7d32; color: white; border: none; padding: 10px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 12px; }
+          body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            padding: 10px; 
+            background: ${isDark ? '#1e1e1e' : '#f0f2f5'}; 
+            color: ${isDark ? '#e0e0e0' : '#333'}; 
+            margin: 0;
+          }
+          input, textarea { 
+            width: 100%; 
+            padding: 8px; 
+            font-size: 13px; 
+            margin-top: 2px; 
+            box-sizing: border-box; 
+            background: ${isDark ? '#2d2d2d' : '#fff'};
+            color: ${isDark ? '#e0e0e0' : '#333'};
+            border: 1px solid ${isDark ? '#444' : '#ccc'};
+            border-radius: 4px;
+          }
+          label { 
+            font-size: 11px; 
+            font-weight: bold; 
+            margin-top: 6px; 
+            display: block; 
+            color: ${isDark ? '#aaa' : '#555'};
+          }
+          button { 
+            width: 100%; 
+            background: #2e7d32; 
+            color: white; 
+            border: none; 
+            padding: 12px; 
+            font-weight: bold; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            margin-top: 12px; 
+            font-size: 14px;
+          }
+          button:hover { background: #1b5e20; }
         </style>
       </head>
       <body>
@@ -505,6 +496,7 @@
     `);
     popWin.document.close();
 
+    // Transfere valores atuais e configura botão de envio
     setTimeout(() => {
       popWin.document.getElementById('popDataRealizada').value = document.getElementById('fieldDataRealizada').value || getHojeDataFormatada();
       popWin.document.getElementById('popOperador').value = document.getElementById('fieldOperador').value;
@@ -520,7 +512,7 @@
       popWin.document.getElementById('btnEnviarPopout').onclick = function() {
         enviarDadosDoPopout(popWin.document);
       };
-    }, 200);
+    }, 150);
   }
 
   function enviarDadosDoPopout(docContext) {
@@ -565,12 +557,12 @@ Ocorrência(s): ${ocor}`;
 
     const camposFaltantes = verificarCamposFaltantes();
     if (camposFaltantes.length > 0) {
-      showToast('⚠️️ Preencha os campos obrigatórios para salvar!');
+      showToast('⚠️ Preencha os campos obrigatórios para salvar!');
       return;
     }
 
     salvarNoHistorico(rawFormatado);
-    showToast('🚀 Ficha gerada da Janela Pop-out!');
+    showToast('🚀 Ficha gerada via Pop-up com sucesso!');
   }
 
   /* BOTÃO SCROLL TO TOP */
@@ -775,7 +767,6 @@ Ocorrência(s):`;
     document.getElementById('outObservacao').innerText = observacao;
     document.getElementById('outOcorrencia').innerText = ocorrencia;
 
-    // FORMATAÇÃO LIMPA E SEM DUPLICAÇÃO DA JUSTIFICATIVA RÁPIDA
     let detalheOcorrencia = '';
     if (observacao !== '-Não se aplica.' && ocorrencia !== '-Não se aplica.') {
       detalheOcorrencia = `OBSERVAÇÃO(ÕES):\n${observacao}\n\nDESVIO / OCORRÊNCIA(S):\n${ocorrencia}`;
@@ -913,7 +904,7 @@ Qualquer dúvida estou a disposição!`;
     datasUnicas.forEach(dt => {
       const count = history.filter(item => item.data === dt).length;
       const label = dt === dataHoje ? `Hoje (${count})` : `${dt} (${count})`;
-      tabsHtml += `<div class="date-tab ${activeDateTab === dt ? 'active' : ''}" onclick="setDateTab('${dt}')">${label}</div>`;
+      tabsHtml += `<div class="date-tab ${activeDateTab === dt ? 'active' : ''}">${label}</div>`;
     });
     tabsContainer.innerHTML = tabsHtml;
 
