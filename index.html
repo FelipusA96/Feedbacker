@@ -20,7 +20,6 @@
       --history-hover: #f5f5f5;
       --error-bg: #ffebee;
       --error-border: #d32f2f;
-      --modal-overlay: rgba(0, 0, 0, 0.6);
     }
 
     [data-theme="dark"] {
@@ -34,7 +33,6 @@
       --history-hover: #2a2a2a;
       --error-bg: #3c1a1d;
       --error-border: #f44336;
-      --modal-overlay: rgba(0, 0, 0, 0.8);
     }
 
     * { box-sizing: border-box; transition: background-color 0.2s, color 0.2s; }
@@ -165,38 +163,43 @@
     .btn-scroll-top.visible { opacity: 1; visibility: visible; }
     .btn-scroll-top:hover { transform: translateY(-3px); }
 
-    /* ESTILOS DO MODAL CHECKLIST */
-    .modal-overlay {
+    /* ESTILOS DA JANELA FLUTUANTE (MÓVEL / REDIMENSIONÁVEL) */
+    .floating-window {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: var(--modal-overlay);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.3s, visibility 0.3s;
-      padding: 15px;
-    }
-    .modal-overlay.active { opacity: 1; visibility: visible; }
-    .modal-container {
+      top: 60px;
+      right: 30px;
+      width: 450px;
+      height: 580px;
       background: var(--card-bg);
-      border-radius: 12px;
-      width: 100%;
-      max-width: 650px;
-      max-height: 90vh;
-      overflow-y: auto;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-      padding: 24px;
-      position: relative;
+      border: 2px solid var(--title-color);
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      z-index: 1000;
+      display: none;
+      flex-direction: column;
+      resize: both;
+      overflow: hidden;
+      min-width: 320px;
+      min-height: 380px;
     }
-    .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px; }
-    .modal-title { font-size: 18px; font-weight: bold; color: var(--title-color); margin: 0; }
-    .modal-close { background: transparent; border: none; font-size: 20px; cursor: pointer; color: var(--text-color); font-weight: bold; }
+    .floating-window.active { display: flex; }
+    .floating-header {
+      background: var(--title-color);
+      color: #ffffff;
+      padding: 8px 12px;
+      font-weight: bold;
+      font-size: 13px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: move;
+      user-select: none;
+    }
+    .floating-body {
+      padding: 15px;
+      overflow-y: auto;
+      flex: 1;
+    }
   </style>
 </head>
 <body>
@@ -233,7 +236,7 @@
         <div class="card-title">
           <span>1. Cole o Relatório Bruto</span>
           <div style="display: flex; gap: 6px;">
-            <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px;" onclick="abrirModalChecklist()">📝 Checklist Guiado</button>
+            <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px;" onclick="toggleJanelaFlutuante()">🪟 Checklist Flutuante</button>
             <button class="btn btn-outline" style="padding: 3px 8px; font-size: 11px;" onclick="copiarMascaraParaClipboard()">📋 Copiar Máscara</button>
           </div>
         </div>
@@ -386,71 +389,67 @@
   </div>
 </div>
 
-<!-- JANELA MODAL DO CHECKLIST GUIADO -->
-<div id="modalChecklist" class="modal-overlay">
-  <div class="modal-container">
-    <div class="modal-header">
-      <h3 class="modal-title">📝 Checklist Guiado de Monitoria</h3>
-      <button class="modal-close" onclick="fecharModalChecklist()">✕</button>
-    </div>
-    
+<!-- JANELA FLUTUANTE ARRASTÁVEL / REDIMENSIONÁVEL -->
+<div id="floatingWindow" class="floating-window">
+  <div id="floatingHeader" class="floating-header">
+    <span>📝 Checklist Flutuante (Arraste aqui)</span>
+    <button style="background:transparent; border:none; color:#fff; font-weight:bold; cursor:pointer;" onclick="toggleJanelaFlutuante()">✕</button>
+  </div>
+  <div class="floating-body">
     <div class="form-row">
       <div class="form-group">
-        <label>Data Realizada *</label>
+        <label>Data Realizada</label>
         <input type="text" id="chkDataRealizada">
       </div>
       <div class="form-group">
-        <label>Operador(a) *</label>
-        <input type="text" id="chkOperador" placeholder="Nome do operador">
+        <label>Operador(a)</label>
+        <input type="text" id="chkOperador" placeholder="Nome">
       </div>
     </div>
 
     <div class="form-row">
       <div class="form-group">
-        <label>Data/Hora Atendimento *</label>
-        <input type="text" id="chkDataHora" placeholder="Ex: 25/09/2026 14:30:00">
+        <label>Data/Hora</label>
+        <input type="text" id="chkDataHora" placeholder="25/09/2026 14:30">
       </div>
       <div class="form-group">
-        <label>Protocolo *</label>
-        <input type="text" id="chkProtocolo" placeholder="Número do protocolo">
+        <label>Protocolo</label>
+        <input type="text" id="chkProtocolo" placeholder="Protocolo">
       </div>
     </div>
 
     <div class="form-row">
       <div class="form-group">
-        <label>Nota Monitoria *</label>
-        <input type="text" id="chkNotaMonitoria" placeholder="Ex: 100 ou 72.22">
+        <label>Nota Monit.</label>
+        <input type="text" id="chkNotaMonitoria" placeholder="100 / 72.22">
       </div>
       <div class="form-group">
         <label>Nota AQM</label>
-        <input type="text" id="chkNotaAqm" placeholder="Ex: 100 ou 72,22">
+        <input type="text" id="chkNotaAqm" placeholder="100 / 72,22">
       </div>
     </div>
 
     <div class="form-group">
-      <label>M.O. *</label>
-      <input type="text" id="chkMo" placeholder="Número da M.O.">
+      <label>M.O.</label>
+      <input type="text" id="chkMo" placeholder="M.O.">
     </div>
 
     <div class="form-group">
-      <label>Descrição do Atendimento / Solicitação *</label>
-      <textarea id="chkAtendimento" rows="3" placeholder="Descreva os detalhes da ligação/solicitação..."></textarea>
+      <label>Atendimento / Solicitação</label>
+      <textarea id="chkAtendimento" rows="3" placeholder="Descrição..."></textarea>
     </div>
 
     <div class="form-group">
       <label>Observação(ões)</label>
-      <textarea id="chkObservacao" rows="2" placeholder="Digite as observações ou deixe vazio para '-Não se aplica.'"></textarea>
+      <textarea id="chkObservacao" rows="2" placeholder="-Não se aplica."></textarea>
     </div>
 
     <div class="form-group">
-      <label>Ocorrência(s) / Desvio(s)</label>
-      <textarea id="chkOcorrencia" rows="2" placeholder="Digite as ocorrências ou deixe vazio para '-Não se aplica.'"></textarea>
+      <label>Ocorrência(s)</label>
+      <textarea id="chkOcorrencia" rows="2" placeholder="-Não se aplica."></textarea>
     </div>
 
-    <div style="display: flex; gap: 10px; margin-top: 15px;">
-      <button class="btn btn-secondary btn-block" onclick="aplicarChecklist()">🚀 Gerar Ficha e Salvar</button>
-      <button class="btn btn-outline" onclick="fecharModalChecklist()">Cancelar</button>
-    </div>
+    <button class="btn btn-secondary btn-block" style="margin-top: 10px;" onclick="aplicarChecklistFlutuante()">🚀 Enviar para Ficha e Salvar</button>
   </div>
 </div>
 
@@ -482,27 +481,55 @@
     'fieldAtendimento'
   ];
 
-  /* LÓGICA DO CHECKLIST GUIADO (MODAL) */
-  function abrirModalChecklist() {
-    document.getElementById('chkDataRealizada').value = document.getElementById('fieldDataRealizada').value || getHojeDataFormatada();
-    document.getElementById('chkOperador').value = document.getElementById('fieldOperador').value;
-    document.getElementById('chkDataHora').value = document.getElementById('fieldDataHora').value;
-    document.getElementById('chkProtocolo').value = document.getElementById('fieldProtocolo').value;
-    document.getElementById('chkNotaMonitoria').value = document.getElementById('fieldNotaMonitoria').value;
-    document.getElementById('chkNotaAqm').value = document.getElementById('fieldNotaAqm').value;
-    document.getElementById('chkMo').value = document.getElementById('fieldMo').value;
-    document.getElementById('chkAtendimento').value = document.getElementById('fieldAtendimento').value;
-    document.getElementById('chkObservacao').value = document.getElementById('fieldObservacao').value;
-    document.getElementById('chkOcorrencia').value = document.getElementById('fieldOcorrencia').value;
-
-    document.getElementById('modalChecklist').classList.add('active');
+  /* LÓGICA DA JANELA FLUTUANTE ARRASTÁVEL */
+  function toggleJanelaFlutuante() {
+    const win = document.getElementById('floatingWindow');
+    if (win.classList.contains('active')) {
+      win.classList.remove('active');
+    } else {
+      document.getElementById('chkDataRealizada').value = document.getElementById('fieldDataRealizada').value || getHojeDataFormatada();
+      document.getElementById('chkOperador').value = document.getElementById('fieldOperador').value;
+      document.getElementById('chkDataHora').value = document.getElementById('fieldDataHora').value;
+      document.getElementById('chkProtocolo').value = document.getElementById('fieldProtocolo').value;
+      document.getElementById('chkNotaMonitoria').value = document.getElementById('fieldNotaMonitoria').value;
+      document.getElementById('chkNotaAqm').value = document.getElementById('fieldNotaAqm').value;
+      document.getElementById('chkMo').value = document.getElementById('fieldMo').value;
+      document.getElementById('chkAtendimento').value = document.getElementById('fieldAtendimento').value;
+      document.getElementById('chkObservacao').value = document.getElementById('fieldObservacao').value;
+      document.getElementById('chkOcorrencia').value = document.getElementById('fieldOcorrencia').value;
+      win.classList.add('active');
+    }
   }
 
-  function fecharModalChecklist() {
-    document.getElementById('modalChecklist').classList.remove('active');
+  // Lógica de arrastar a janela flutuante
+  const win = document.getElementById("floatingWindow");
+  const header = document.getElementById("floatingHeader");
+  let isDragging = false, posX = 0, posY = 0, initialX = 0, initialY = 0;
+
+  header.addEventListener("mousedown", (e) => {
+    isDragging = true;
+    initialX = e.clientX - win.offsetLeft;
+    initialY = e.clientY - win.offsetTop;
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp);
+  });
+
+  function onMouseMove(e) {
+    if (!isDragging) return;
+    posX = e.clientX - initialX;
+    posY = e.clientY - initialY;
+    win.style.left = posX + "px";
+    win.style.top = posY + "px";
+    win.style.right = "auto";
   }
 
-  function aplicarChecklist() {
+  function onMouseUp() {
+    isDragging = false;
+    document.removeEventListener("mousemove", onMouseMove);
+    document.removeEventListener("mouseup", onMouseUp);
+  }
+
+  function aplicarChecklistFlutuante() {
     const dtRealizada = document.getElementById('chkDataRealizada').value.trim() || getHojeDataFormatada();
     const op = document.getElementById('chkOperador').value.trim();
     const dtHora = document.getElementById('chkDataHora').value.trim();
@@ -514,7 +541,6 @@
     const obs = document.getElementById('chkObservacao').value.trim();
     const ocor = document.getElementById('chkOcorrencia').value.trim();
 
-    // Transfere os valores do Checklist para os campos principais
     document.getElementById('fieldDataRealizada').value = dtRealizada;
     document.getElementById('fieldOperador').value = op;
     document.getElementById('fieldDataHora').value = dtHora;
@@ -526,7 +552,6 @@
     document.getElementById('fieldObservacao').value = obs;
     document.getElementById('fieldOcorrencia').value = ocor;
 
-    // Constrói o formato equivalente no Relatório Bruto
     const rawFormatado = `Realizada: ${dtRealizada}
 Operador(a): ${op}
 Data/Hora: ${dtHora}
@@ -546,14 +571,12 @@ Ocorrência(s): ${ocor}`;
 
     const camposFaltantes = verificarCamposFaltantes();
     if (camposFaltantes.length > 0) {
-      showToast('⚠️ Preencha os campos obrigatórios no formulário para salvar!');
-      fecharModalChecklist();
+      showToast('⚠️ Preencha os campos obrigatórios para salvar!');
       return;
     }
 
     salvarNoHistorico(rawFormatado);
-    fecharModalChecklist();
-    showToast('🚀 Ficha gerada via Checklist com sucesso!');
+    showToast('🚀 Ficha gerada e salva com sucesso!');
   }
 
   /* BOTÃO SCROLL TO TOP */
