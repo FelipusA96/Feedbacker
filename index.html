@@ -212,7 +212,7 @@
         <textarea id="rawInput" rows="9" spellcheck="true" placeholder="Cole aqui o texto da monitoria contendo Realizada, Operador, AQM, Monitoria, Registro de Atendimento, Observação(ões), Ocorrência(s), etc..."></textarea>
         <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-top: 10px;">
           <button class="btn btn-block" onclick="processarTexto()">⚡ Processar Dados</button>
-          <button class="btn btn-outline" onclick="limparRelatorioBruto()">🗑️ Limpar</button>
+          <button class="btn btn-outline" onclick="limparRelatorioBruto()">🗑️️ Limpar</button>
         </div>
       </div>
 
@@ -433,7 +433,6 @@
 
   /* LÓGICA DE DESTACAR JANELA NATIVA (DOCUMENT PIP OU JANELA POPUP SEPARADA) */
   async function abrirPopOutWindow() {
-    // 1. Tenta usar a API nativa Document Picture-in-Picture (Chrome 111+)
     if ('documentPictureInPicture' in window) {
       try {
         pipWindow = await window.documentPictureInPicture.requestWindow({
@@ -441,7 +440,6 @@
           height: 600
         });
 
-        // Copia os estilos para a nova janela destacada
         [...document.styleSheets].forEach((styleSheet) => {
           try {
             const cssRules = [...styleSheet.cssRules].map((rule) => rule.cssText).join('');
@@ -457,12 +455,10 @@
           }
         });
 
-        // Insere a estrutura do checklist na janela Picture-in-Picture
         pipWindow.document.body.innerHTML = document.getElementById('checklistTemplate').innerHTML;
         pipWindow.document.body.style.padding = '10px';
         pipWindow.document.body.style.backgroundColor = getComputedStyle(document.body).backgroundColor;
 
-        // Pré-preenche os valores da aba principal
         pipWindow.document.getElementById('popDataRealizada').value = document.getElementById('fieldDataRealizada').value || getHojeDataFormatada();
         pipWindow.document.getElementById('popOperador').value = document.getElementById('fieldOperador').value;
         pipWindow.document.getElementById('popDataHora').value = document.getElementById('fieldDataHora').value;
@@ -474,7 +470,6 @@
         pipWindow.document.getElementById('popObservacao').value = document.getElementById('fieldObservacao').value;
         pipWindow.document.getElementById('popOcorrencia').value = document.getElementById('fieldOcorrencia').value;
 
-        // Atribui a função de envio ao botão dentro da janela destacada
         pipWindow.document.getElementById('btnEnviarPopout').addEventListener('click', () => {
           enviarDadosDoPopout(pipWindow.document);
         });
@@ -485,7 +480,6 @@
       }
     }
 
-    // 2. Fallback: Abre como uma janela Popup nativa do sistema
     const popWin = window.open("", "ChecklistPopout", "width=420,height=600,resizable=yes,scrollbars=yes,alwaysOnTop=yes");
     if (!popWin) {
       showToast("⚠️ Permita pop-ups no navegador para abrir a janela destacada.");
@@ -511,7 +505,6 @@
     `);
     popWin.document.close();
 
-    // Pré-preenche os valores na popup
     setTimeout(() => {
       popWin.document.getElementById('popDataRealizada').value = document.getElementById('fieldDataRealizada').value || getHojeDataFormatada();
       popWin.document.getElementById('popOperador').value = document.getElementById('fieldOperador').value;
@@ -572,7 +565,7 @@ Ocorrência(s): ${ocor}`;
 
     const camposFaltantes = verificarCamposFaltantes();
     if (camposFaltantes.length > 0) {
-      showToast('⚠️ Preencha os campos obrigatórios para salvar!');
+      showToast('⚠️️ Preencha os campos obrigatórios para salvar!');
       return;
     }
 
@@ -782,14 +775,17 @@ Ocorrência(s):`;
     document.getElementById('outObservacao').innerText = observacao;
     document.getElementById('outOcorrencia').innerText = ocorrencia;
 
-    let detalheOcorrencia = ocorrencia;
+    // FORMATAÇÃO LIMPA E SEM DUPLICAÇÃO DA JUSTIFICATIVA RÁPIDA
+    let detalheOcorrencia = '';
     if (observacao !== '-Não se aplica.' && ocorrencia !== '-Não se aplica.') {
-      detalheOcorrencia = `Obs: ${observacao}\nDesvio: ${ocorrencia}`;
+      detalheOcorrencia = `OBSERVAÇÃO(ÕES):\n${observacao}\n\nDESVIO / OCORRÊNCIA(S):\n${ocorrencia}`;
     } else if (observacao !== '-Não se aplica.') {
-      detalheOcorrencia = observacao;
+      detalheOcorrencia = `OBSERVAÇÃO(ÕES):\n${observacao}`;
+    } else {
+      detalheOcorrencia = `DESVIO / OCORRÊNCIA(S):\n${ocorrencia}`;
     }
 
-    document.getElementById('justificativaRender').innerText = `Data/Hora: ${dataHora}\nOBS:\n${detalheOcorrencia}`;
+    document.getElementById('justificativaRender').innerText = `Data/Hora: ${dataHora}\n\n${detalheOcorrencia}`;
 
     const textoEmail = `${saudacao}, ${supervisor}
 
