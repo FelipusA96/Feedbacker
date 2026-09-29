@@ -163,42 +163,11 @@
     .btn-scroll-top.visible { opacity: 1; visibility: visible; }
     .btn-scroll-top:hover { transform: translateY(-3px); }
 
-    /* ESTILOS DA JANELA FLUTUANTE (MÓVEL / REDIMENSIONÁVEL) */
-    .floating-window {
-      position: fixed;
-      top: 60px;
-      right: 30px;
-      width: 450px;
-      height: 580px;
+    /* ESTILOS DO CONTAINER DO CHECKLIST */
+    .checklist-container {
       background: var(--card-bg);
-      border: 2px solid var(--title-color);
-      border-radius: 10px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
-      z-index: 1000;
-      display: none;
-      flex-direction: column;
-      resize: both;
-      overflow: hidden;
-      min-width: 320px;
-      min-height: 380px;
-    }
-    .floating-window.active { display: flex; }
-    .floating-header {
-      background: var(--title-color);
-      color: #ffffff;
-      padding: 8px 12px;
-      font-weight: bold;
-      font-size: 13px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      cursor: move;
-      user-select: none;
-    }
-    .floating-body {
       padding: 15px;
-      overflow-y: auto;
-      flex: 1;
+      border-radius: 8px;
     }
   </style>
 </head>
@@ -236,7 +205,7 @@
         <div class="card-title">
           <span>1. Cole o Relatório Bruto</span>
           <div style="display: flex; gap: 6px;">
-            <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px;" onclick="toggleJanelaFlutuante()">🪟 Checklist Flutuante</button>
+            <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px;" onclick="abrirPopOutWindow()">🪟 Destacar Pop-out</button>
             <button class="btn btn-outline" style="padding: 3px 8px; font-size: 11px;" onclick="copiarMascaraParaClipboard()">📋 Copiar Máscara</button>
           </div>
         </div>
@@ -389,67 +358,47 @@
   </div>
 </div>
 
-<!-- JANELA FLUTUANTE ARRASTÁVEL / REDIMENSIONÁVEL -->
-<div id="floatingWindow" class="floating-window">
-  <div id="floatingHeader" class="floating-header">
-    <span>📝 Checklist Flutuante (Arraste aqui)</span>
-    <button style="background:transparent; border:none; color:#fff; font-weight:bold; cursor:pointer;" onclick="toggleJanelaFlutuante()">✕</button>
-  </div>
-  <div class="floating-body">
-    <div class="form-row">
-      <div class="form-group">
-        <label>Data Realizada</label>
-        <input type="text" id="chkDataRealizada">
-      </div>
-      <div class="form-group">
-        <label>Operador(a)</label>
-        <input type="text" id="chkOperador" placeholder="Nome">
-      </div>
+<!-- TEMPLATE DE ELEMENTO DO CHECKLIST GUIADO -->
+<div id="checklistTemplate" style="display: none;">
+  <div class="checklist-container">
+    <div style="font-weight:bold; margin-bottom:12px; color:var(--title-color); font-size:15px;">📝 Checklist de Monitoria (Pop-out)</div>
+    
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
+      <div><label style="font-size:11px; font-weight:bold; display:block;">DATA REALIZADA</label><input type="text" id="popDataRealizada" style="width:100%; padding:6px; font-size:12px;"></div>
+      <div><label style="font-size:11px; font-weight:bold; display:block;">OPERADOR(A)</label><input type="text" id="popOperador" placeholder="Nome" style="width:100%; padding:6px; font-size:12px;"></div>
     </div>
 
-    <div class="form-row">
-      <div class="form-group">
-        <label>Data/Hora</label>
-        <input type="text" id="chkDataHora" placeholder="25/09/2026 14:30">
-      </div>
-      <div class="form-group">
-        <label>Protocolo</label>
-        <input type="text" id="chkProtocolo" placeholder="Protocolo">
-      </div>
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
+      <div><label style="font-size:11px; font-weight:bold; display:block;">DATA/HORA</label><input type="text" id="popDataHora" placeholder="25/09/2026 14:30" style="width:100%; padding:6px; font-size:12px;"></div>
+      <div><label style="font-size:11px; font-weight:bold; display:block;">PROTOCOLO</label><input type="text" id="popProtocolo" placeholder="Número" style="width:100%; padding:6px; font-size:12px;"></div>
     </div>
 
-    <div class="form-row">
-      <div class="form-group">
-        <label>Nota Monit.</label>
-        <input type="text" id="chkNotaMonitoria" placeholder="100 / 72.22">
-      </div>
-      <div class="form-group">
-        <label>Nota AQM</label>
-        <input type="text" id="chkNotaAqm" placeholder="100 / 72,22">
-      </div>
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
+      <div><label style="font-size:11px; font-weight:bold; display:block;">NOTA MONIT.</label><input type="text" id="popNotaMonitoria" placeholder="100 / 72.22" style="width:100%; padding:6px; font-size:12px;"></div>
+      <div><label style="font-size:11px; font-weight:bold; display:block;">NOTA AQM</label><input type="text" id="popNotaAqm" placeholder="100 / 72,22" style="width:100%; padding:6px; font-size:12px;"></div>
     </div>
 
-    <div class="form-group">
-      <label>M.O.</label>
-      <input type="text" id="chkMo" placeholder="M.O.">
+    <div style="margin-bottom:10px;">
+      <label style="font-size:11px; font-weight:bold; display:block;">M.O.</label>
+      <input type="text" id="popMo" placeholder="M.O." style="width:100%; padding:6px; font-size:12px;">
     </div>
 
-    <div class="form-group">
-      <label>Atendimento / Solicitação</label>
-      <textarea id="chkAtendimento" rows="3" placeholder="Descrição..."></textarea>
+    <div style="margin-bottom:10px;">
+      <label style="font-size:11px; font-weight:bold; display:block;">SOLICITAÇÃO / ATENDIMENTO</label>
+      <textarea id="popAtendimento" rows="3" placeholder="Descrição do atendimento..." style="width:100%; padding:6px; font-size:12px;"></textarea>
     </div>
 
-    <div class="form-group">
-      <label>Observação(ões)</label>
-      <textarea id="chkObservacao" rows="2" placeholder="-Não se aplica."></textarea>
+    <div style="margin-bottom:10px;">
+      <label style="font-size:11px; font-weight:bold; display:block;">OBSERVAÇÃO(ÕES)</label>
+      <textarea id="popObservacao" rows="2" placeholder="-Não se aplica." style="width:100%; padding:6px; font-size:12px;"></textarea>
     </div>
 
-    <div class="form-group">
-      <label>Ocorrência(s)</label>
-      <textarea id="chkOcorrencia" rows="2" placeholder="-Não se aplica."></textarea>
+    <div style="margin-bottom:12px;">
+      <label style="font-size:11px; font-weight:bold; display:block;">OCORRÊNCIA(S)</label>
+      <textarea id="popOcorrencia" rows="2" placeholder="-Não se aplica." style="width:100%; padding:6px; font-size:12px;"></textarea>
     </div>
 
-    <button class="btn btn-secondary btn-block" style="margin-top: 10px;" onclick="aplicarChecklistFlutuante()">🚀 Enviar para Ficha e Salvar</button>
+    <button id="btnEnviarPopout" style="width:100%; background:#2e7d32; color:#fff; font-weight:bold; padding:10px; border:none; border-radius:6px; cursor:pointer;">🚀 Enviar para Ficha e Salvar</button>
   </div>
 </div>
 
@@ -462,6 +411,7 @@
   let modoAtual = 'MONITORIA';
   let currentEditingId = null;
   let activeDateTab = 'TODAS';
+  let pipWindow = null;
 
   function getHojeDataFormatada() {
     const hoje = new Date();
@@ -481,65 +431,116 @@
     'fieldAtendimento'
   ];
 
-  /* LÓGICA DA JANELA FLUTUANTE ARRASTÁVEL */
-  function toggleJanelaFlutuante() {
-    const win = document.getElementById('floatingWindow');
-    if (win.classList.contains('active')) {
-      win.classList.remove('active');
-    } else {
-      document.getElementById('chkDataRealizada').value = document.getElementById('fieldDataRealizada').value || getHojeDataFormatada();
-      document.getElementById('chkOperador').value = document.getElementById('fieldOperador').value;
-      document.getElementById('chkDataHora').value = document.getElementById('fieldDataHora').value;
-      document.getElementById('chkProtocolo').value = document.getElementById('fieldProtocolo').value;
-      document.getElementById('chkNotaMonitoria').value = document.getElementById('fieldNotaMonitoria').value;
-      document.getElementById('chkNotaAqm').value = document.getElementById('fieldNotaAqm').value;
-      document.getElementById('chkMo').value = document.getElementById('fieldMo').value;
-      document.getElementById('chkAtendimento').value = document.getElementById('fieldAtendimento').value;
-      document.getElementById('chkObservacao').value = document.getElementById('fieldObservacao').value;
-      document.getElementById('chkOcorrencia').value = document.getElementById('fieldOcorrencia').value;
-      win.classList.add('active');
+  /* LÓGICA DE DESTACAR JANELA NATIVA (DOCUMENT PIP OU JANELA POPUP SEPARADA) */
+  async function abrirPopOutWindow() {
+    // 1. Tenta usar a API nativa Document Picture-in-Picture (Chrome 111+)
+    if ('documentPictureInPicture' in window) {
+      try {
+        pipWindow = await window.documentPictureInPicture.requestWindow({
+          width: 420,
+          height: 600
+        });
+
+        // Copia os estilos para a nova janela destacada
+        [...document.styleSheets].forEach((styleSheet) => {
+          try {
+            const cssRules = [...styleSheet.cssRules].map((rule) => rule.cssText).join('');
+            const style = document.createElement('style');
+            style.textContent = cssRules;
+            pipWindow.document.head.appendChild(style);
+          } catch (e) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.type = styleSheet.type;
+            link.href = styleSheet.href;
+            pipWindow.document.head.appendChild(link);
+          }
+        });
+
+        // Insere a estrutura do checklist na janela Picture-in-Picture
+        pipWindow.document.body.innerHTML = document.getElementById('checklistTemplate').innerHTML;
+        pipWindow.document.body.style.padding = '10px';
+        pipWindow.document.body.style.backgroundColor = getComputedStyle(document.body).backgroundColor;
+
+        // Pré-preenche os valores da aba principal
+        pipWindow.document.getElementById('popDataRealizada').value = document.getElementById('fieldDataRealizada').value || getHojeDataFormatada();
+        pipWindow.document.getElementById('popOperador').value = document.getElementById('fieldOperador').value;
+        pipWindow.document.getElementById('popDataHora').value = document.getElementById('fieldDataHora').value;
+        pipWindow.document.getElementById('popProtocolo').value = document.getElementById('fieldProtocolo').value;
+        pipWindow.document.getElementById('popNotaMonitoria').value = document.getElementById('fieldNotaMonitoria').value;
+        pipWindow.document.getElementById('popNotaAqm').value = document.getElementById('fieldNotaAqm').value;
+        pipWindow.document.getElementById('popMo').value = document.getElementById('fieldMo').value;
+        pipWindow.document.getElementById('popAtendimento').value = document.getElementById('fieldAtendimento').value;
+        pipWindow.document.getElementById('popObservacao').value = document.getElementById('fieldObservacao').value;
+        pipWindow.document.getElementById('popOcorrencia').value = document.getElementById('fieldOcorrencia').value;
+
+        // Atribui a função de envio ao botão dentro da janela destacada
+        pipWindow.document.getElementById('btnEnviarPopout').addEventListener('click', () => {
+          enviarDadosDoPopout(pipWindow.document);
+        });
+
+        return;
+      } catch (err) {
+        console.warn("Falha no Document PiP, utilizando fallback de Janela Popup:", err);
+      }
     }
+
+    // 2. Fallback: Abre como uma janela Popup nativa do sistema
+    const popWin = window.open("", "ChecklistPopout", "width=420,height=600,resizable=yes,scrollbars=yes,alwaysOnTop=yes");
+    if (!popWin) {
+      showToast("⚠️ Permita pop-ups no navegador para abrir a janela destacada.");
+      return;
+    }
+
+    popWin.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Checklist Pop-out</title>
+        <style>
+          body { font-family: sans-serif; padding: 10px; background: #f0f2f5; color: #333; }
+          input, textarea { width: 100%; padding: 6px; font-size: 12px; margin-top: 2px; box-sizing: border-box; }
+          label { font-size: 11px; font-weight: bold; margin-top: 6px; display: block; }
+          button { width: 100%; background: #2e7d32; color: white; border: none; padding: 10px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 12px; }
+        </style>
+      </head>
+      <body>
+        ${document.getElementById('checklistTemplate').innerHTML}
+      </body>
+      </html>
+    `);
+    popWin.document.close();
+
+    // Pré-preenche os valores na popup
+    setTimeout(() => {
+      popWin.document.getElementById('popDataRealizada').value = document.getElementById('fieldDataRealizada').value || getHojeDataFormatada();
+      popWin.document.getElementById('popOperador').value = document.getElementById('fieldOperador').value;
+      popWin.document.getElementById('popDataHora').value = document.getElementById('fieldDataHora').value;
+      popWin.document.getElementById('popProtocolo').value = document.getElementById('fieldProtocolo').value;
+      popWin.document.getElementById('popNotaMonitoria').value = document.getElementById('fieldNotaMonitoria').value;
+      popWin.document.getElementById('popNotaAqm').value = document.getElementById('fieldNotaAqm').value;
+      popWin.document.getElementById('popMo').value = document.getElementById('fieldMo').value;
+      popWin.document.getElementById('popAtendimento').value = document.getElementById('fieldAtendimento').value;
+      popWin.document.getElementById('popObservacao').value = document.getElementById('fieldObservacao').value;
+      popWin.document.getElementById('popOcorrencia').value = document.getElementById('fieldOcorrencia').value;
+
+      popWin.document.getElementById('btnEnviarPopout').onclick = function() {
+        enviarDadosDoPopout(popWin.document);
+      };
+    }, 200);
   }
 
-  // Lógica de arrastar a janela flutuante
-  const win = document.getElementById("floatingWindow");
-  const header = document.getElementById("floatingHeader");
-  let isDragging = false, posX = 0, posY = 0, initialX = 0, initialY = 0;
-
-  header.addEventListener("mousedown", (e) => {
-    isDragging = true;
-    initialX = e.clientX - win.offsetLeft;
-    initialY = e.clientY - win.offsetTop;
-    document.addEventListener("mousemove", onMouseMove);
-    document.addEventListener("mouseup", onMouseUp);
-  });
-
-  function onMouseMove(e) {
-    if (!isDragging) return;
-    posX = e.clientX - initialX;
-    posY = e.clientY - initialY;
-    win.style.left = posX + "px";
-    win.style.top = posY + "px";
-    win.style.right = "auto";
-  }
-
-  function onMouseUp() {
-    isDragging = false;
-    document.removeEventListener("mousemove", onMouseMove);
-    document.removeEventListener("mouseup", onMouseUp);
-  }
-
-  function aplicarChecklistFlutuante() {
-    const dtRealizada = document.getElementById('chkDataRealizada').value.trim() || getHojeDataFormatada();
-    const op = document.getElementById('chkOperador').value.trim();
-    const dtHora = document.getElementById('chkDataHora').value.trim();
-    const prot = document.getElementById('chkProtocolo').value.trim();
-    const notaMon = document.getElementById('chkNotaMonitoria').value.trim();
-    const notaAqm = document.getElementById('chkNotaAqm').value.trim();
-    const mo = document.getElementById('chkMo').value.trim();
-    const atend = document.getElementById('chkAtendimento').value.trim();
-    const obs = document.getElementById('chkObservacao').value.trim();
-    const ocor = document.getElementById('chkOcorrencia').value.trim();
+  function enviarDadosDoPopout(docContext) {
+    const dtRealizada = docContext.getElementById('popDataRealizada').value.trim() || getHojeDataFormatada();
+    const op = docContext.getElementById('popOperador').value.trim();
+    const dtHora = docContext.getElementById('popDataHora').value.trim();
+    const prot = docContext.getElementById('popProtocolo').value.trim();
+    const notaMon = docContext.getElementById('popNotaMonitoria').value.trim();
+    const notaAqm = docContext.getElementById('popNotaAqm').value.trim();
+    const mo = docContext.getElementById('popMo').value.trim();
+    const atend = docContext.getElementById('popAtendimento').value.trim();
+    const obs = docContext.getElementById('popObservacao').value.trim();
+    const ocor = docContext.getElementById('popOcorrencia').value.trim();
 
     document.getElementById('fieldDataRealizada').value = dtRealizada;
     document.getElementById('fieldOperador').value = op;
@@ -576,7 +577,7 @@ Ocorrência(s): ${ocor}`;
     }
 
     salvarNoHistorico(rawFormatado);
-    showToast('🚀 Ficha gerada e salva com sucesso!');
+    showToast('🚀 Ficha gerada da Janela Pop-out!');
   }
 
   /* BOTÃO SCROLL TO TOP */
