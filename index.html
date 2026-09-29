@@ -20,8 +20,7 @@
       --history-hover: #f5f5f5;
       --error-bg: #ffebee;
       --error-border: #d32f2f;
-      --fab-bg: #1a237e;
-      --fab-color: #ffffff;
+      --modal-overlay: rgba(0, 0, 0, 0.6);
     }
 
     [data-theme="dark"] {
@@ -35,12 +34,10 @@
       --history-hover: #2a2a2a;
       --error-bg: #3c1a1d;
       --error-border: #f44336;
-      --fab-bg: #3949ab;
-      --fab-color: #ffffff;
+      --modal-overlay: rgba(0, 0, 0, 0.8);
     }
 
     * { box-sizing: border-box; transition: background-color 0.2s, color 0.2s; }
-    html { scroll-behavior: smooth; }
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); margin: 0; padding: 20px; color: var(--text-color); }
     .app-container { max-width: 1200px; margin: 0 auto; }
     
@@ -143,40 +140,63 @@
     .history-item:hover { background-color: var(--history-hover); }
     .toast { position: fixed; bottom: 20px; right: 20px; background: #323232; color: #fff; padding: 12px 24px; border-radius: 6px; font-size: 14px; display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 999; }
 
-    /* BOTÃO FLUTUANTE SUBIR AO TOPO */
+    /* BOTÃO VOLTAR AO TOPO FLUTUANTE */
     .btn-scroll-top {
       position: fixed;
       bottom: 25px;
       right: 25px;
-      width: 46px;
-      height: 46px;
-      background-color: var(--fab-bg);
-      color: var(--fab-color);
-      border: none;
+      width: 48px;
+      height: 48px;
       border-radius: 50%;
-      font-size: 20px;
+      background: var(--title-color);
+      color: #ffffff;
+      border: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      font-size: 20px;
       opacity: 0;
       visibility: hidden;
-      transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.2s ease, background-color 0.2s ease;
+      transition: opacity 0.3s, visibility 0.3s, transform 0.2s;
+      z-index: 990;
+    }
+    .btn-scroll-top.visible { opacity: 1; visibility: visible; }
+    .btn-scroll-top:hover { transform: translateY(-3px); }
+
+    /* ESTILOS DO MODAL CHECKLIST */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: var(--modal-overlay);
+      display: flex;
+      align-items: center;
+      justify-content: center;
       z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s, visibility 0.3s;
+      padding: 15px;
     }
-    .btn-scroll-top.visible {
-      opacity: 0.9;
-      visibility: visible;
+    .modal-overlay.active { opacity: 1; visibility: visible; }
+    .modal-container {
+      background: var(--card-bg);
+      border-radius: 12px;
+      width: 100%;
+      max-width: 650px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      padding: 24px;
+      position: relative;
     }
-    .btn-scroll-top:hover {
-      opacity: 1;
-      transform: translateY(-3px);
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
-    }
-    .btn-scroll-top:active {
-      transform: translateY(0);
-    }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px; }
+    .modal-title { font-size: 18px; font-weight: bold; color: var(--title-color); margin: 0; }
+    .modal-close { background: transparent; border: none; font-size: 20px; cursor: pointer; color: var(--text-color); font-weight: bold; }
   </style>
 </head>
 <body>
@@ -212,7 +232,10 @@
       <div class="card">
         <div class="card-title">
           <span>1. Cole o Relatório Bruto</span>
-          <button class="btn btn-outline" style="padding: 3px 8px; font-size: 11px;" onclick="copiarMascaraParaClipboard()">📋 Copiar Máscara</button>
+          <div style="display: flex; gap: 6px;">
+            <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px;" onclick="abrirModalChecklist()">📝 Checklist Guiado</button>
+            <button class="btn btn-outline" style="padding: 3px 8px; font-size: 11px;" onclick="copiarMascaraParaClipboard()">📋 Copiar Máscara</button>
+          </div>
         </div>
         <textarea id="rawInput" rows="9" spellcheck="true" placeholder="Cole aqui o texto da monitoria contendo Realizada, Operador, AQM, Monitoria, Registro de Atendimento, Observação(ões), Ocorrência(s), etc..."></textarea>
         <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-top: 10px;">
@@ -363,17 +386,84 @@
   </div>
 </div>
 
-<div id="toast" class="toast">Texto copiado com sucesso!</div>
+<!-- JANELA MODAL DO CHECKLIST GUIADO -->
+<div id="modalChecklist" class="modal-overlay">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h3 class="modal-title">📝 Checklist Guiado de Monitoria</h3>
+      <button class="modal-close" onclick="fecharModalChecklist()">✕</button>
+    </div>
+    
+    <div class="form-row">
+      <div class="form-group">
+        <label>Data Realizada *</label>
+        <input type="text" id="chkDataRealizada">
+      </div>
+      <div class="form-group">
+        <label>Operador(a) *</label>
+        <input type="text" id="chkOperador" placeholder="Nome do operador">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Data/Hora Atendimento *</label>
+        <input type="text" id="chkDataHora" placeholder="Ex: 25/09/2026 14:30:00">
+      </div>
+      <div class="form-group">
+        <label>Protocolo *</label>
+        <input type="text" id="chkProtocolo" placeholder="Número do protocolo">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Nota Monitoria *</label>
+        <input type="text" id="chkNotaMonitoria" placeholder="Ex: 100 ou 72.22">
+      </div>
+      <div class="form-group">
+        <label>Nota AQM</label>
+        <input type="text" id="chkNotaAqm" placeholder="Ex: 100 ou 72,22">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>M.O. *</label>
+      <input type="text" id="chkMo" placeholder="Número da M.O.">
+    </div>
+
+    <div class="form-group">
+      <label>Descrição do Atendimento / Solicitação *</label>
+      <textarea id="chkAtendimento" rows="3" placeholder="Descreva os detalhes da ligação/solicitação..."></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Observação(ões)</label>
+      <textarea id="chkObservacao" rows="2" placeholder="Digite as observações ou deixe vazio para '-Não se aplica.'"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Ocorrência(s) / Desvio(s)</label>
+      <textarea id="chkOcorrencia" rows="2" placeholder="Digite as ocorrências ou deixe vazio para '-Não se aplica.'"></textarea>
+    </div>
+
+    <div style="display: flex; gap: 10px; margin-top: 15px;">
+      <button class="btn btn-secondary btn-block" onclick="aplicarChecklist()">🚀 Gerar Ficha e Salvar</button>
+      <button class="btn btn-outline" onclick="fecharModalChecklist()">Cancelar</button>
+    </div>
+  </div>
+</div>
 
 <!-- BOTÃO FLUTUANTE VOLTAR AO TOPO -->
-<button id="btnScrollTop" class="btn-scroll-top" onclick="subirAoTopo()" title="Voltar ao Topo" aria-label="Voltar ao Topo">⬆️</button>
+<button id="scrollTopBtn" class="btn-scroll-top" title="Voltar ao topo" onclick="scrollToTop()">⬆️</button>
+
+<div id="toast" class="toast">Texto copiado com sucesso!</div>
 
 <script>
   let modoAtual = 'MONITORIA';
   let currentEditingId = null;
   let activeDateTab = 'TODAS';
 
-  // Obter data atual no formato DD/MM/AAAA
   function getHojeDataFormatada() {
     const hoje = new Date();
     const dia = String(hoje.getDate()).padStart(2, '0');
@@ -382,7 +472,6 @@
     return `${dia}/${mes}/${ano}`;
   }
 
-  // Campos obrigatórios que precisam estar preenchidos para salvar no histórico
   const camposObrigatorios = [
     'fieldDataRealizada',
     'fieldOperador',
@@ -392,6 +481,96 @@
     'fieldMo',
     'fieldAtendimento'
   ];
+
+  /* LÓGICA DO CHECKLIST GUIADO (MODAL) */
+  function abrirModalChecklist() {
+    document.getElementById('chkDataRealizada').value = document.getElementById('fieldDataRealizada').value || getHojeDataFormatada();
+    document.getElementById('chkOperador').value = document.getElementById('fieldOperador').value;
+    document.getElementById('chkDataHora').value = document.getElementById('fieldDataHora').value;
+    document.getElementById('chkProtocolo').value = document.getElementById('fieldProtocolo').value;
+    document.getElementById('chkNotaMonitoria').value = document.getElementById('fieldNotaMonitoria').value;
+    document.getElementById('chkNotaAqm').value = document.getElementById('fieldNotaAqm').value;
+    document.getElementById('chkMo').value = document.getElementById('fieldMo').value;
+    document.getElementById('chkAtendimento').value = document.getElementById('fieldAtendimento').value;
+    document.getElementById('chkObservacao').value = document.getElementById('fieldObservacao').value;
+    document.getElementById('chkOcorrencia').value = document.getElementById('fieldOcorrencia').value;
+
+    document.getElementById('modalChecklist').classList.add('active');
+  }
+
+  function fecharModalChecklist() {
+    document.getElementById('modalChecklist').classList.remove('active');
+  }
+
+  function aplicarChecklist() {
+    const dtRealizada = document.getElementById('chkDataRealizada').value.trim() || getHojeDataFormatada();
+    const op = document.getElementById('chkOperador').value.trim();
+    const dtHora = document.getElementById('chkDataHora').value.trim();
+    const prot = document.getElementById('chkProtocolo').value.trim();
+    const notaMon = document.getElementById('chkNotaMonitoria').value.trim();
+    const notaAqm = document.getElementById('chkNotaAqm').value.trim();
+    const mo = document.getElementById('chkMo').value.trim();
+    const atend = document.getElementById('chkAtendimento').value.trim();
+    const obs = document.getElementById('chkObservacao').value.trim();
+    const ocor = document.getElementById('chkOcorrencia').value.trim();
+
+    // Transfere os valores do Checklist para os campos principais
+    document.getElementById('fieldDataRealizada').value = dtRealizada;
+    document.getElementById('fieldOperador').value = op;
+    document.getElementById('fieldDataHora').value = dtHora;
+    document.getElementById('fieldProtocolo').value = prot;
+    document.getElementById('fieldNotaMonitoria').value = notaMon;
+    document.getElementById('fieldNotaAqm').value = notaAqm;
+    document.getElementById('fieldMo').value = mo;
+    document.getElementById('fieldAtendimento').value = atend;
+    document.getElementById('fieldObservacao').value = obs;
+    document.getElementById('fieldOcorrencia').value = ocor;
+
+    // Constrói o formato equivalente no Relatório Bruto
+    const rawFormatado = `Realizada: ${dtRealizada}
+Operador(a): ${op}
+Data/Hora: ${dtHora}
+Protocolo: ${prot}
+AQM: ${notaAqm}
+Monitoria: ${notaMon}
+Registro de Atendimento
+MO: ${mo}
+${atend}
+Observação(ões): ${obs}
+Ocorrência(s): ${ocor}`;
+
+    document.getElementById('rawInput').value = rawFormatado;
+
+    limparErrosVisuais();
+    atualizarInterface();
+
+    const camposFaltantes = verificarCamposFaltantes();
+    if (camposFaltantes.length > 0) {
+      showToast('⚠️ Preencha os campos obrigatórios no formulário para salvar!');
+      fecharModalChecklist();
+      return;
+    }
+
+    salvarNoHistorico(rawFormatado);
+    fecharModalChecklist();
+    showToast('🚀 Ficha gerada via Checklist com sucesso!');
+  }
+
+  /* BOTÃO SCROLL TO TOP */
+  function checkScrollPosition() {
+    const btn = document.getElementById('scrollTopBtn');
+    if (window.scrollY > 200) {
+      btn.classList.add('visible');
+    } else {
+      btn.classList.remove('visible');
+    }
+  }
+
+  function scrollToTop() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  window.addEventListener('scroll', checkScrollPosition);
 
   function toggleTheme() {
     const currentTheme = document.documentElement.getAttribute('data-theme');
@@ -494,7 +673,6 @@ Ocorrência(s):`;
                           
     const protocoloMatch = raw.match(/Protocolo:\s*(\d+)/i) || raw.match(/Protocolo:\s*(.*)/i);
     
-    // RegEx ajustada para aceitar inteiros e decimais (com ponto ou vírgula)
     const aqmMatch = raw.match(/AQM:\s*(\d+(?:[.,]\d+)?)/i);
     const monitoriaMatch = raw.match(/Monitoria:\s*(\d+(?:[.,]\d+)?)/i) || raw.match(/Nota:\s*(\d+(?:[.,]\d+)?)/i);
     
@@ -865,24 +1043,6 @@ Qualquer dúvida estou a disposição!`;
     toast.style.display = 'block';
     setTimeout(() => { toast.style.display = 'none'; }, 3000);
   }
-
-  // Função para rolar até o topo da página suavemente
-  function subirAoTopo() {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
-  }
-
-  // Controla a visibilidade do botão flutuante baseado no scroll da página
-  window.addEventListener('scroll', function() {
-    const btnScrollTop = document.getElementById('btnScrollTop');
-    if (window.scrollY > 200) {
-      btnScrollTop.classList.add('visible');
-    } else {
-      btnScrollTop.classList.remove('visible');
-    }
-  });
 
   window.onload = function() {
     const savedTheme = localStorage.getItem('theme_preference');
