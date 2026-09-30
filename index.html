@@ -416,13 +416,14 @@
 </div>
 
 <!-- BOTÃO FLUTUANTE VOLTAR AO TOPO -->
-<button id="scrollTopBtn" class="btn-scroll-top" title="Voltar ao topo" onclick="scrollToTop()">⬆️️</button>
+<button id="scrollTopBtn" class="btn-scroll-top" title="Voltar ao topo" onclick="scrollToTop()">⬆</button>
 
 <div id="toast" class="toast">Texto copiado com sucesso!</div>
 
 <script>
-  // URL DO SEU WEBHOOK GOOGLE INTEGRADOR (GOOGLE DOCS)
-  const GOOGLE_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzLkC388UmBwzm5eU1cwsET_Bfny-tEoUDR_yvG65ugF2yXt5TPmNxaF7A6oryy4e0zLw/exec";
+  // URLS DOS WEBHOOKS DO GOOGLE (DOCS + SHEETS)
+  const GOOGLE_DOCS_URL = "https://script.google.com/macros/s/AKfycbzLkC388UmBwzm5eU1cwsET_Bfny-tEoUDR_yvG65ugF2yXt5TPmNxaF7A6oryy4e0zLw/exec";
+  const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbyLd7ywsi8Z7NSXHSauvl1Enjo7B5b-fLicXJctCOdq9s0WFExl8XjRR_AXpFiAvehE/exec";
 
   let modoAtual = 'MONITORIA';
   let currentEditingId = null;
@@ -446,16 +447,13 @@
     'fieldAtendimento'
   ];
 
-  /* ENVIO AUTOMÁTICO PARA NUVEM (GOOGLE DOCS) COM SUPORTE A ATUALIZAÇÃO POR ID */
+  /* ENVIO AUTOMÁTICO SIMULTÂNEO BASEADO NO PROTOCOLO */
   function enviarParaNuvemGoogle() {
-    if (!GOOGLE_WEBHOOK_URL) return;
-
     const dados = {
-      id: currentEditingId, // Garante envio do ID para atualização de célula/bloco
       dataRealizada: getHojeDataFormatada(),
       operador: document.getElementById('fieldOperador').value.trim(),
       dataHora: document.getElementById('fieldDataHora').value.trim(),
-      protocolo: document.getElementById('fieldProtocolo').value.trim(),
+      protocolo: document.getElementById('fieldProtocolo').value.trim(), // Chave única
       aqm: document.getElementById('fieldNotaAqm').value.trim() || "#",
       monitoria: document.getElementById('fieldNotaMonitoria').value.trim(),
       mo: document.getElementById('fieldMo').value.trim(),
@@ -464,18 +462,17 @@
       ocorrencia: document.getElementById('fieldOcorrencia').value.trim()
     };
 
-    fetch(GOOGLE_WEBHOOK_URL, {
+    const payload = {
       method: "POST",
       mode: "no-cors",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(dados)
-    })
-    .then(() => {
-      showToast("☁️️ Salvo/Atualizado no Google Docs!");
-    })
-    .catch(err => {
-      console.error("Erro ao enviar para o Google:", err);
-    });
+    };
+
+    if (GOOGLE_DOCS_URL) fetch(GOOGLE_DOCS_URL, payload);
+    if (GOOGLE_SHEETS_URL) fetch(GOOGLE_SHEETS_URL, payload);
+
+    showToast("☁️ Salvo/Atualizado no Docs e Sheets!");
   }
 
   /* LÓGICA DE ABRIR POP-UP TRADICIONAL NATIVO DO SISTEMA */
@@ -629,8 +626,8 @@ Ocorrência(s): ${ocor}`;
       return;
     }
 
-    salvarNoHistorico(rawFormatado);
-    enviarParaNuvemGoogle(); // Dispara envio/atualização em segundo plano
+    salvarNoHistorico(rawFormatado, prot);
+    enviarParaNuvemGoogle();
     showToast('🚀 Ficha gerada via Pop-up!');
     
     limparCamposPopout(docContext);
@@ -751,7 +748,8 @@ Ocorrência(s):`;
                           raw.match(/Data\/Hora:\s*([^\n\r]+)/i);
                           
     const protocoloMatch = raw.match(/Protocolo:\s*(\d+)/i) || raw.match(/Protocolo:\s*(.*)/i);
-    
+    const protNum = protocoloMatch ? protocoloMatch[1].replace(/Protocolo:\s*/i, '').trim() : '';
+
     const aqmMatch = raw.match(/AQM:\s*(\d+(?:[.,]\d+)?)/i);
     const monitoriaMatch = raw.match(/Monitoria:\s*(\d+(?:[.,]\d+)?)/i) || raw.match(/Nota:\s*(\d+(?:[.,]\d+)?)/i);
     
@@ -776,7 +774,7 @@ Ocorrência(s):`;
       document.getElementById('fieldDataHora').value = '';
     }
 
-    document.getElementById('fieldProtocolo').value = protocoloMatch ? protocoloMatch[1].replace(/Protocolo:\s*/i, '').trim() : '';
+    document.getElementById('fieldProtocolo').value = protNum;
     document.getElementById('fieldNotaAqm').value = aqmMatch ? aqmMatch[1].trim() : '';
     document.getElementById('fieldNotaMonitoria').value = monitoriaMatch ? monitoriaMatch[1].trim() : '';
     document.getElementById('fieldMo').value = moMatch ? moMatch[1].replace(/MO:\s*/i, '').trim() : '';
@@ -799,12 +797,12 @@ Ocorrência(s):`;
     const camposFaltantes = verificarCamposFaltantes();
 
     if (camposFaltantes.length > 0) {
-      showToast('⚠️️ Informações incompletas! Preencha os campos em vermelho para salvar.');
+      showToast('⚠️ Informações incompletas! Preencha os campos em vermelho para salvar.');
       return;
     }
 
-    salvarNoHistorico(raw);
-    enviarParaNuvemGoogle(); // Dispara envio/atualização em segundo plano
+    salvarNoHistorico(raw, protNum);
+    enviarParaNuvemGoogle();
     showToast('⚡ Dados processados e salvos com sucesso!');
   }
 
@@ -922,28 +920,28 @@ Qualquer dúvida estou a disposição!`;
     }
   }
 
-  function salvarNoHistorico(rawText) {
+  function salvarNoHistorico(rawText, protocoloVal) {
     const op = document.getElementById('fieldOperador').value || 'Operador não identificado';
     const dt = getHojeDataFormatada();
+    const itemKey = protocoloVal || Date.now();
     
     let history = JSON.parse(localStorage.getItem('monitorias_history') || '[]');
     
-    if (currentEditingId !== null) {
-      const index = history.findIndex(h => h.id === currentEditingId);
-      if (index !== -1) {
-        history[index] = { id: currentEditingId, operador: op, data: dt, text: rawText, tipo: modoAtual };
-        localStorage.setItem('monitorias_history', JSON.stringify(history));
-        carregarHistorico();
-        return;
-      }
+    const index = history.findIndex(h => h.protocolo === itemKey || h.id === currentEditingId);
+    if (index !== -1) {
+      history[index] = { id: history[index].id, protocolo: itemKey, operador: op, data: dt, text: rawText, tipo: modoAtual };
+      localStorage.setItem('monitorias_history', JSON.stringify(history));
+      carregarHistorico();
+      currentEditingId = null; // Reseta ID após salvar
+      return;
     }
 
     const newId = Date.now();
-    currentEditingId = newId;
-    history.unshift({ id: newId, operador: op, data: dt, text: rawText, tipo: modoAtual });
+    history.unshift({ id: newId, protocolo: itemKey, operador: op, data: dt, text: rawText, tipo: modoAtual });
     if (history.length > 100) history.pop();
     localStorage.setItem('monitorias_history', JSON.stringify(history));
     
+    currentEditingId = null; // Reseta ID após salvar novo
     activeDateTab = dt;
     carregarHistorico();
   }
