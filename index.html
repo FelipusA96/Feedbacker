@@ -416,11 +416,14 @@
 </div>
 
 <!-- BOTÃO FLUTUANTE VOLTAR AO TOPO -->
-<button id="scrollTopBtn" class="btn-scroll-top" title="Voltar ao topo" onclick="scrollToTop()">⬆️</button>
+<button id="scrollTopBtn" class="btn-scroll-top" title="Voltar ao topo" onclick="scrollToTop()">⬆️️</button>
 
 <div id="toast" class="toast">Texto copiado com sucesso!</div>
 
 <script>
+  // URL DO SEU WEBHOOK GOOGLE INTEGRADOR (GOOGLE DOCS)
+  const GOOGLE_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzLkC388UmBwzm5eU1cwsET_Bfny-tEoUDR_yvG65ugF2yXt5TPmNxaF7A6oryy4e0zLw/exec";
+
   let modoAtual = 'MONITORIA';
   let currentEditingId = null;
   let activeDateTab = 'TODAS';
@@ -443,11 +446,43 @@
     'fieldAtendimento'
   ];
 
+  /* ENVIO AUTOMÁTICO PARA NUVEM (GOOGLE DOCS) COM SUPORTE A ATUALIZAÇÃO POR ID */
+  function enviarParaNuvemGoogle() {
+    if (!GOOGLE_WEBHOOK_URL) return;
+
+    const dados = {
+      id: currentEditingId, // Garante envio do ID para atualização de célula/bloco
+      dataRealizada: getHojeDataFormatada(),
+      operador: document.getElementById('fieldOperador').value.trim(),
+      dataHora: document.getElementById('fieldDataHora').value.trim(),
+      protocolo: document.getElementById('fieldProtocolo').value.trim(),
+      aqm: document.getElementById('fieldNotaAqm').value.trim() || "#",
+      monitoria: document.getElementById('fieldNotaMonitoria').value.trim(),
+      mo: document.getElementById('fieldMo').value.trim(),
+      atendimento: document.getElementById('fieldAtendimento').value.trim(),
+      observacao: document.getElementById('fieldObservacao').value.trim(),
+      ocorrencia: document.getElementById('fieldOcorrencia').value.trim()
+    };
+
+    fetch(GOOGLE_WEBHOOK_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(dados)
+    })
+    .then(() => {
+      showToast("☁️️ Salvo/Atualizado no Google Docs!");
+    })
+    .catch(err => {
+      console.error("Erro ao enviar para o Google:", err);
+    });
+  }
+
   /* LÓGICA DE ABRIR POP-UP TRADICIONAL NATIVO DO SISTEMA */
   function abrirPopOutWindow() {
     const popWin = window.open("", "ChecklistPopout", "width=450,height=650,resizable=yes,scrollbars=yes");
     if (!popWin) {
-      showToast("⚠️️ Permita pop-ups no seu navegador para abrir a janela.");
+      showToast("⚠️ Permita pop-ups no seu navegador para abrir a janela.");
       return;
     }
 
@@ -513,7 +548,6 @@
     `);
     popWin.document.close();
 
-    // Transfere valores atuais e força a data atual travada
     setTimeout(() => {
       popWin.document.getElementById('popDataRealizada').value = getHojeDataFormatada();
       popWin.document.getElementById('popOperador').value = document.getElementById('fieldOperador').value;
@@ -526,12 +560,10 @@
       popWin.document.getElementById('popObservacao').value = document.getElementById('fieldObservacao').value;
       popWin.document.getElementById('popOcorrencia').value = document.getElementById('fieldOcorrencia').value;
 
-      // Botão Limpar Campos
       popWin.document.getElementById('btnPopLimparCampos').onclick = function() {
         limparCamposPopout(popWin.document);
       };
 
-      // Botão Enviar
       popWin.document.getElementById('btnEnviarPopout').onclick = function() {
         enviarDadosDoPopout(popWin.document);
       };
@@ -552,7 +584,7 @@
   }
 
   function enviarDadosDoPopout(docContext) {
-    const dtRealizada = getHojeDataFormatada(); // Garante sempre a data atual
+    const dtRealizada = getHojeDataFormatada();
     const op = docContext.getElementById('popOperador').value.trim();
     const dtHora = docContext.getElementById('popDataHora').value.trim();
     const prot = docContext.getElementById('popProtocolo').value.trim();
@@ -598,9 +630,9 @@ Ocorrência(s): ${ocor}`;
     }
 
     salvarNoHistorico(rawFormatado);
-    showToast('🚀 Ficha gerada via Pop-up com sucesso!');
+    enviarParaNuvemGoogle(); // Dispara envio/atualização em segundo plano
+    showToast('🚀 Ficha gerada via Pop-up!');
     
-    // Limpa automaticamente os campos da janela pop-up mantendo a data atual
     limparCamposPopout(docContext);
   }
 
@@ -735,7 +767,7 @@ Ocorrência(s):`;
                             raw.match(/Ocorrências:\s*([\s\S]*)/i) ||
                             raw.match(/DESVIO:\s*([\s\S]*)/i);
 
-    document.getElementById('fieldDataRealizada').value = dataHoje; // Sempre mantém a data de hoje
+    document.getElementById('fieldDataRealizada').value = dataHoje;
     document.getElementById('fieldOperador').value = operadorMatch ? operadorMatch[1].trim() : '';
     
     if (dataHoraMatch && !dataHoraMatch[1].toLowerCase().includes('protocolo')) {
@@ -767,11 +799,12 @@ Ocorrência(s):`;
     const camposFaltantes = verificarCamposFaltantes();
 
     if (camposFaltantes.length > 0) {
-      showToast('⚠️ Informações incompletas! Preencha os campos em vermelho para salvar.');
+      showToast('⚠️️ Informações incompletas! Preencha os campos em vermelho para salvar.');
       return;
     }
 
     salvarNoHistorico(raw);
+    enviarParaNuvemGoogle(); // Dispara envio/atualização em segundo plano
     showToast('⚡ Dados processados e salvos com sucesso!');
   }
 
