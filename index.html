@@ -253,7 +253,7 @@
         </div>
 
         <div class="form-row">
-          <div class="form-group"><label>Data Realizada (Fixa)</label><input type="text" id="fieldDataRealizada" readonly tabindex="-1"></div>
+          <div class="form-group"><label>Data Realizada (Lida do Texto)</label><input type="text" id="fieldDataRealizada" readonly tabindex="-1"></div>
           <div class="form-group"><label>Operador(a) *</label><input type="text" id="fieldOperador" spellcheck="true" oninput="validarECarregar()"></div>
         </div>
         <div class="form-row">
@@ -382,7 +382,7 @@
     </div>
     
     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
-      <div><label style="font-size:11px; font-weight:bold; display:block;">DATA REALIZADA (FIXA)</label><input type="text" id="popDataRealizada" readonly tabindex="-1" style="width:100%; padding:6px; font-size:12px;"></div>
+      <div><label style="font-size:11px; font-weight:bold; display:block;">DATA REALIZADA</label><input type="text" id="popDataRealizada" placeholder="30/09/2026" style="width:100%; padding:6px; font-size:12px;"></div>
       <div><label style="font-size:11px; font-weight:bold; display:block;">OPERADOR(A)</label><input type="text" id="popOperador" placeholder="Nome" style="width:100%; padding:6px; font-size:12px;"></div>
     </div>
 
@@ -483,12 +483,6 @@
             border: 1px solid ${isDark ? '#444' : '#ccc'};
             border-radius: 4px;
           }
-          input[readonly] {
-            background-color: ${isDark ? '#383838' : '#e9ecef'} !important;
-            cursor: not-allowed;
-            opacity: 0.85;
-            font-weight: bold;
-          }
           label { 
             font-size: 11px; 
             font-weight: bold; 
@@ -519,7 +513,7 @@
     popWin.document.close();
 
     setTimeout(() => {
-      popWin.document.getElementById('popDataRealizada').value = getHojeDataFormatada();
+      popWin.document.getElementById('popDataRealizada').value = document.getElementById('fieldDataRealizada').value || getHojeDataFormatada();
       popWin.document.getElementById('popOperador').value = document.getElementById('fieldOperador').value;
       popWin.document.getElementById('popDataHora').value = document.getElementById('fieldDataHora').value;
       popWin.document.getElementById('popProtocolo').value = document.getElementById('fieldProtocolo').value;
@@ -554,7 +548,7 @@
   }
 
   function enviarDadosDoPopout(docContext) {
-    const dtRealizada = getHojeDataFormatada();
+    const dtRealizada = docContext.getElementById('popDataRealizada').value.trim() || getHojeDataFormatada();
     const op = docContext.getElementById('popOperador').value.trim();
     const dtHora = docContext.getElementById('popDataHora').value.trim();
     const prot = docContext.getElementById('popProtocolo').value.trim();
@@ -599,10 +593,8 @@ Ocorrência(s): ${ocor}`;
       return;
     }
 
-    salvarNoHistorico(rawFormatado, prot);
+    salvarNoHistorico(rawFormatado, prot, dtRealizada);
     showToast('🚀 Ficha gerada via Pop-up!');
-    
-    limparCamposPopout(docContext);
   }
 
   /* BOTÃO SCROLL TO TOP */
@@ -713,7 +705,10 @@ Ocorrência(s):`;
 
     limparErrosVisuais();
 
-    const dataHoje = getHojeDataFormatada();
+    // EXTRAI A DATA REALIZADA DIRETAMENTE DO TEXTO COLADO (ex: "Realizada: 30/09/2026")
+    const realizadaMatch = raw.match(/Realizada:\s*(\d{2}\/\d{2}\/\d{4})/i);
+    const dataRealizadaExtraida = realizadaMatch ? realizadaMatch[1].trim() : getHojeDataFormatada();
+
     const operadorMatch = raw.match(/Operador\(a\):\s*(.*)/i);
     
     const dataHoraMatch = raw.match(/Data\/Hora:\s*(\d{2}\/\d{2}\/\d{4}(?:\s+\d{2}:\d{2}:\d{2})?)/i) || 
@@ -737,7 +732,7 @@ Ocorrência(s):`;
                             raw.match(/Ocorrências:\s*([\s\S]*)/i) ||
                             raw.match(/DESVIO:\s*([\s\S]*)/i);
 
-    document.getElementById('fieldDataRealizada').value = dataHoje;
+    document.getElementById('fieldDataRealizada').value = dataRealizadaExtraida;
     document.getElementById('fieldOperador').value = operadorMatch ? operadorMatch[1].trim() : '';
     
     if (dataHoraMatch && !dataHoraMatch[1].toLowerCase().includes('protocolo')) {
@@ -773,12 +768,12 @@ Ocorrência(s):`;
       return;
     }
 
-    salvarNoHistorico(raw, protNum);
+    salvarNoHistorico(raw, protNum, dataRealizadaExtraida);
     showToast('⚡ Dados processados e salvos localmente!');
   }
 
   function atualizarInterface() {
-    const dataRealizada = getHojeDataFormatada();
+    const dataRealizada = document.getElementById('fieldDataRealizada').value || getHojeDataFormatada();
     const operador = document.getElementById('fieldOperador').value || '---';
     const dataHora = document.getElementById('fieldDataHora').value || '---';
     const protocolo = document.getElementById('fieldProtocolo').value || '---';
@@ -891,9 +886,9 @@ Qualquer dúvida estou a disposição!`;
     }
   }
 
-  function salvarNoHistorico(rawText, protocoloVal) {
+  function salvarNoHistorico(rawText, protocoloVal, dataRealizadaVal) {
     const op = document.getElementById('fieldOperador').value || 'Operador não identificado';
-    const dt = getHojeDataFormatada();
+    const dt = dataRealizadaVal || getHojeDataFormatada();
     const itemKey = protocoloVal || Date.now();
     
     let history = JSON.parse(localStorage.getItem('monitorias_history') || '[]');
@@ -1006,6 +1001,7 @@ Qualquer dúvida estou a disposição!`;
 
     const dataRows = itensParaExportar.map(h => {
       const raw = h.text || '';
+      const realizadaMatch = raw.match(/Realizada:\s*(\d{2}\/\d{2}\/\d{4})/i);
       const operadorMatch = raw.match(/Operador\(a\):\s*(.*)/i);
       const dataHoraMatch = raw.match(/Data\/Hora:\s*(\d{2}\/\d{2}\/\d{4}(?:\s+\d{2}:\d{2}:\d{2})?)/i) || raw.match(/Data\/Hora:\s*([^\n\r]+)/i);
       const protocoloMatch = raw.match(/Protocolo:\s*(\d+)/i) || raw.match(/Protocolo:\s*(.*)/i);
@@ -1025,7 +1021,7 @@ Qualquer dúvida estou a disposição!`;
 
       return {
         "Tipo": h.tipo || 'MONITORIA',
-        "Data Realizada": h.data,
+        "Data Realizada": realizadaMatch ? realizadaMatch[1] : h.data,
         "Operador(a)": operadorMatch ? operadorMatch[1].trim() : h.operador,
         "Data/Hora Atendimento": (dataHoraMatch && !dataHoraMatch[1].toLowerCase().includes('protocolo')) ? dataHoraMatch[1].trim() : '',
         "Protocolo": protocoloMatch ? protocoloMatch[1].replace(/Protocolo:\s*/i, '').trim() : '',
